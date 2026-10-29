@@ -1,12 +1,19 @@
 """OpenTelemetry tracing setup."""
 
+import os
+
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace import ReadableSpan, TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 
 from cre.config import Settings
+
+
+def format_span_line(span: ReadableSpan) -> str:
+    line: str = span.to_json(indent=None)  # type: ignore[arg-type]
+    return line + os.linesep
 
 
 def configure_tracing(settings: Settings) -> TracerProvider:
@@ -19,7 +26,9 @@ def configure_tracing(settings: Settings) -> TracerProvider:
     )
     provider = TracerProvider(resource=resource)
     if settings.otel_exporter == "console":
-        provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+        provider.add_span_processor(
+            BatchSpanProcessor(ConsoleSpanExporter(formatter=format_span_line))
+        )
     elif settings.otel_exporter == "otlp":
         provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
     if not isinstance(trace.get_tracer_provider(), TracerProvider):

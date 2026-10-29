@@ -61,7 +61,7 @@ def redact_text(text: str) -> str:
     return _KEY_VALUE.sub(_key_value_repl, result)
 
 
-def _is_sensitive_key(key: object) -> bool:
+def is_sensitive_key(key: object) -> bool:
     normalized = str(key).lower().replace("-", "_").replace(".", "_")
     return any(part in normalized for part in _SENSITIVE_KEY_PARTS)
 
@@ -69,7 +69,7 @@ def _is_sensitive_key(key: object) -> bool:
 def redact(value: Any) -> Any:
     if isinstance(value, dict):
         return {
-            key: (REDACTED if item is not None and _is_sensitive_key(key) else redact(item))
+            key: (REDACTED if item is not None and is_sensitive_key(key) else redact(item))
             for key, item in value.items()
         }
     if isinstance(value, list):

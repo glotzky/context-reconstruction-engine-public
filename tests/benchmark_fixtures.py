@@ -158,6 +158,11 @@ def write_doc(path: Path, doc: Any) -> Path:
     return path
 
 
+def write_manifest(root: Path, dev: list[str], heldout: list[str]) -> Path:
+    doc = {"schema_version": 1, "dev": dev, "heldout": heldout}
+    return write_doc(root / "manifest.json", doc)
+
+
 def write_scenario(
     root: Path,
     case_id: str = "case-01",
@@ -165,8 +170,19 @@ def write_scenario(
     inputs: Any = None,
     labels: Any = None,
     fake: Any = None,
+    split: str = "dev",
 ) -> Path:
     write_doc(root / "inputs" / f"{case_id}.json", inputs or input_doc(case_id))
     write_doc(root / "labels" / f"{case_id}.json", labels or labels_doc(case_id))
     write_doc(root / "fake" / f"{case_id}.json", fake or fake_doc(case_id))
+    manifest_path = root / "manifest.json"
+    sets: dict[str, list[str]] = {"dev": [], "heldout": []}
+    if manifest_path.is_file():
+        existing = json.loads(manifest_path.read_text("utf-8"))
+        sets = {name: list(existing.get(name, [])) for name in sets}
+    for name in sets:
+        if case_id in sets[name]:
+            sets[name].remove(case_id)
+    sets[split].append(case_id)
+    write_manifest(root, sets["dev"], sets["heldout"])
     return root

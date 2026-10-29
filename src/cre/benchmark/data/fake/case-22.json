@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "case_id": "case-22",
+  "engine": [
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Query references a column missing from the database",
+          "explanation": "The order lookup query fails because the column is not present.",
+          "claims": [
+            {
+              "text": "The failure is visible in the error evidence.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-220000000003"
+              ],
+              "status": "verified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-220000000003"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "medium",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    },
+    {
+      "action": "call_tools",
+      "tool_calls": [
+        {
+          "tool": "fetch_by_service_window",
+          "arguments": {
+            "service": "cre-lab-api",
+            "window_before_seconds": 900
+          }
+        }
+      ],
+      "reason": "look for related changes"
+    },
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Database search_path now resolves orders from a stale schema copy",
+          "explanation": "The search_path setting changed to lab_stale, public, so orders resolves to a copy without the column. The README commit and its deployment do not touch the schema. The order is a lead and the cited evidence ties the setting to the error.",
+          "claims": [
+            {
+              "text": "The cited evidence is consistent with this explanation.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-220000000001",
+                "00000000-0000-4000-8000-220000000003"
+              ],
+              "status": "verified"
+            },
+            {
+              "text": "The exact mechanism was not directly observed.",
+              "evidence_ids": [],
+              "status": "unverified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-220000000001",
+            "00000000-0000-4000-8000-220000000003"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "low",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        },
+        {
+          "rank": 2,
+          "title": "Query references a column missing from the database",
+          "explanation": "The order lookup query fails because the column is not present.",
+          "claims": [
+            {
+              "text": "The error evidence shows the symptom only.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-220000000003"
+              ],
+              "status": "verified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-220000000003"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "high",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    },
+    {
+      "action": "conclude",
+      "tool_calls": [],
+      "reason": "evidence reviewed"
+    }
+  ],
+  "baseline": [
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Query references a column missing from the database",
+          "explanation": "The order lookup query fails because the column is not present.",
+          "claims": [
+            {
+              "text": "The windowed evidence shows this.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-220000000003",
+                "00000000-0000-4000-8000-220000000004"
+              ],
+              "status": "verified"
+            },
+            {
+              "text": "No earlier changes were considered.",
+              "evidence_ids": [],
+              "status": "unverified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-220000000003",
+            "00000000-0000-4000-8000-220000000004"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "medium",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    }
+  ]
+}

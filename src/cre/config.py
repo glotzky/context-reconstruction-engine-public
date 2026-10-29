@@ -38,12 +38,19 @@ class Settings(BaseSettings):
         default=5000, ge=100, le=60_000, alias="CRE_RETRIEVAL_STATEMENT_TIMEOUT_MS"
     )
 
-    llm_provider: Literal["fake"] = Field(default="fake", alias="CRE_LLM_PROVIDER")
+    llm_provider: Literal["fake", "anthropic"] = Field(default="fake", alias="CRE_LLM_PROVIDER")
     llm_model: str = Field(default="", alias="CRE_LLM_MODEL")
     llm_api_key: SecretStr = Field(default=SecretStr(""), alias="CRE_LLM_API_KEY")
     llm_timeout_seconds: float = Field(default=30, ge=1, le=300, alias="CRE_LLM_TIMEOUT_SECONDS")
     llm_max_output_tokens: int = Field(
         default=4000, ge=100, le=32_000, alias="CRE_LLM_MAX_OUTPUT_TOKENS"
+    )
+    llm_max_retries: int = Field(default=2, ge=0, le=5, alias="CRE_LLM_MAX_RETRIES")
+    llm_price_input_per_mtok: float = Field(
+        default=0.0, ge=0, le=1000, alias="CRE_LLM_PRICE_INPUT_PER_MTOK"
+    )
+    llm_price_output_per_mtok: float = Field(
+        default=0.0, ge=0, le=1000, alias="CRE_LLM_PRICE_OUTPUT_PER_MTOK"
     )
     llm_bundle_max_items: int = Field(default=50, ge=1, le=1000, alias="CRE_LLM_BUNDLE_MAX_ITEMS")
     llm_bundle_max_chars: int = Field(

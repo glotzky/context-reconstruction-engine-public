@@ -1,3 +1,4 @@
+import json
 from typing import Any
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -6,7 +7,7 @@ import pytest
 from pydantic import ValidationError
 from sqlalchemy.dialects import postgresql
 
-from cre.evidence import EVIDENCE_ADAPTER, Evidence
+from cre.evidence import EVIDENCE_ADAPTER, Evidence, SourceRef
 from cre.evidence_repo import (
     MAX_BATCH_LOAD,
     evidence_from_row,
@@ -17,7 +18,12 @@ from cre.evidence_repo import (
     load_evidence_many,
     store_evidence,
 )
-from cre.normalizers import normalize_deployment, normalize_log, normalize_span
+from cre.normalizers import (
+    normalize_config_change,
+    normalize_deployment,
+    normalize_log,
+    normalize_span,
+)
 from cre.redaction import REDACTED
 from tests.evidence_samples import (
     DEPLOYMENT_SOURCE,
@@ -304,3 +310,74 @@ def test_load_evidence_many_maps_rows_and_dedupes(fake_conn: MagicMock) -> None:
     stmt = fake_conn.execute.call_args.args[0]
     params = stmt.compile(dialect=postgresql.dialect()).params
     assert list(params.values()) == [[ALL_KINDS[0].id, ALL_KINDS[1].id]]
+
+
+CONFIG_SOURCE = SourceRef(source_type="config_change", name="config_changes.json", locator="[0]")
+SAMPLE_CONFIG_CHANGE: dict[str, Any] = {
+    "changed_at": "2026-01-01T00:10:00Z",
+    "service": "cre-lab-api",
+    "version": "0.1.0",
+    "actor": "alice@example.com",
+    "change_id": "fake-change-1",
+    "changes": [
+        {"key": "DB_PASSWORD", "old_value": "hunter2", "new_value": "hunter3"},
+        {"key": "db.pool_size", "old_value": 5, "new_value": 50},
+    ],
+}
+
+
+def _config_items() -> list[Evidence]:
+    return list(
+        normalize_config_change(
+            SAMPLE_CONFIG_CHANGE,
+            source=CONFIG_SOURCE,
+            retrieved_at=RETRIEVED_AT,
+            retrieval_method="config_change_fixture",
+        )
+    )
+
+
+def test_config_change_normalize_store_load_round_trip_keeps_provenance(
+    fake_conn: MagicMock,
+) -> None:
+    for item in _config_items():
+        fake_conn.execute.reset_mock()
+        fake_conn.execute.return_value.scalar_one_or_none.return_value = item.id
+        stored_id = store_evidence(fake_conn, item)
+        assert stored_id == item.id
+        params = fake_conn.execute.call_args.args[0].compile().params
+        assert params["kind"] == "config_change"
+        fake_conn.execute.reset_mock()
+        fake_conn.execute.return_value.mappings.return_value.first.return_value = {
+            **params,
+            "stored_at": RETRIEVED_AT,
+        }
+        loaded = load_evidence(fake_conn, stored_id)
+        assert loaded is not None and loaded.kind == "config_change"
+        assert item.kind == "config_change"
+        _assert_same(loaded, item)
+        source = loaded.provenance.source
+        assert (source.source_type, source.name, source.locator) == (
+            "config_change",
+            "config_changes.json",
+            item.provenance.source.locator,
+        )
+        assert loaded.provenance.retrieval_method == "config_change_fixture"
+        assert loaded.provenance.retrieved_at == RETRIEVED_AT
+        assert loaded.provenance.identifiers == item.provenance.identifiers
+        assert loaded.timestamp == item.timestamp
+        assert loaded.service == item.service == "cre-lab-api"
+        assert loaded.deployment_version == item.deployment_version == "0.1.0"
+        assert loaded.observed == item.observed
+        if item.observed.key == "DB_PASSWORD":
+            assert params["observed"]["old_value"] == REDACTED
+            assert params["observed"]["new_value"] == REDACTED
+        assert "hunter2" not in loaded.model_dump_json()
+        assert "hunter2" not in json.dumps(params, default=str)
+
+
+def test_config_change_duplicate_has_same_idempotency_key() -> None:
+    first = _config_items()
+    second = _config_items()
+    assert [idempotency_key(i) for i in first] == [idempotency_key(i) for i in second]
+    assert idempotency_key(first[0]) != idempotency_key(first[1])

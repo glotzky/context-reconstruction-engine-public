@@ -4,7 +4,8 @@ Submissions are untrusted: they are size-limited, strictly validated, redacted b
 and never echoed in errors.
 """
 
-from typing import Annotated
+from collections.abc import Mapping
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -20,6 +21,24 @@ from cre.investigation_jobs import InvestigationRequest, JobView, get_job, submi
 router = APIRouter(tags=["investigations"])
 
 
+def validation_problems(exc: ValidationError) -> list[dict[str, str]]:
+    return [
+        {
+            "locator": ".".join(str(part) for part in error["loc"]) or "<root>",
+            "message": error["msg"],
+        }
+        for error in exc.errors()
+    ]
+
+
+def start_investigation(conn: Connection, payload: Mapping[str, Any]) -> UUID:
+    """Validate and enqueue a submission, then commit. Raises ValidationError without committing."""
+    request = InvestigationRequest.model_validate(payload)
+    job_id = submit_job(conn, request)
+    conn.commit()
+    return job_id
+
+
 @router.post("/investigations", status_code=202)
 def submit_investigation(
     body: Annotated[bytes, Depends(read_limited_body)],
@@ -27,19 +46,11 @@ def submit_investigation(
 ) -> dict[str, str]:
     payload = _parse_object(body)
     try:
-        request = InvestigationRequest.model_validate(payload)
-        job_id = submit_job(conn, request)
+        job_id = start_investigation(conn, payload)
     except ValidationError as exc:
-        problems = [
-            {
-                "locator": ".".join(str(part) for part in error["loc"]) or "<root>",
-                "message": error["msg"],
-            }
-            for error in exc.errors()
-        ]
+        problems = validation_problems(exc)
         message = "; ".join(f"{p['locator']}: {p['message']}" for p in problems)
         _fail(422, "invalid_submission", message, problems)
-    conn.commit()
     return {"id": str(job_id), "status": "pending"}
 
 

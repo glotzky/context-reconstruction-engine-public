@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 
 from cre.evidence import EVIDENCE_ADAPTER
-from cre.redaction import REDACTED, redact, redact_evidence, redact_text
+from cre.redaction import REDACTED, is_sensitive_key, redact, redact_evidence, redact_text
 from tests.evidence_samples import RETRIEVED_AT, SPAN_ID, TRACE_ID
 
 
@@ -193,3 +193,11 @@ def test_redact_evidence_idempotent() -> None:
     once = redact_evidence(item)
     assert "fake-pw" not in once.model_dump_json()
     assert redact_evidence(once) == once
+
+
+@pytest.mark.parametrize(
+    ("key", "expected"),
+    [("DB_PASSWORD", True), ("api-key", True), ("Database.Url", True), ("db.pool_size", False)],
+)
+def test_is_sensitive_key_public(key: str, expected: bool) -> None:
+    assert is_sensitive_key(key) is expected

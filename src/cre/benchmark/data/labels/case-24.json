@@ -1,0 +1,21 @@
+{
+  "category": "race_condition",
+  "root_cause_id": "rc-24-overlapping-writes",
+  "root_cause_summary": "Two writers updated the same cart at nearly the same time.",
+  "accepted_keywords": [
+    "concurrent"
+  ],
+  "schema_version": 1,
+  "case_id": "case-24",
+  "answerable": true,
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-240000000002",
+    "00000000-0000-4000-8000-240000000003"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-240000000002",
+    "00000000-0000-4000-8000-240000000003",
+    "00000000-0000-4000-8000-240000000004"
+  ],
+  "misleading_evidence_ids": []
+}

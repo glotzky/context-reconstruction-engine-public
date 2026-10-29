@@ -181,7 +181,9 @@ def test_labels_never_reach_the_provider(tmp_path: Path) -> None:
     assert all(c.stop_reason == "concluded" for c in run.cases)
 
 
-@pytest.mark.parametrize("module", ["runner.py", "scenarios.py", "fake.py"])
+@pytest.mark.parametrize(
+    "module", ["runner.py", "scenarios.py", "fake.py", "cost.py", "manifest.py"]
+)
 def test_investigator_side_modules_do_not_import_labels(module: str) -> None:
     source = (Path(cre.benchmark.__file__).parent / module).read_text("utf-8")
     for node in ast.walk(ast.parse(source)):

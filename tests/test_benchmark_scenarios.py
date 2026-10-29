@@ -31,6 +31,7 @@ def test_valid_files_load(tmp_path: Path) -> None:
     assert len(scenario.evidence) == 5 and len(script.engine) == 4
     [case] = load_cases(tmp_path)
     assert case.scenario == scenario and case.labels == labels and case.script == script
+    assert case.split == "dev"
 
 
 def test_initial_evidence_keeps_order(tmp_path: Path) -> None:
@@ -178,7 +179,7 @@ def test_one_bad_case_fails_whole_load(tmp_path: Path) -> None:
 
 def test_shipped_scenarios_cover_plan() -> None:
     cases = load_cases(DEFAULT_DATA_DIR)
-    assert [c.scenario.case_id for c in cases] == [f"case-{n:02d}" for n in range(1, 21)]
+    assert [c.scenario.case_id for c in cases] == [f"case-{n:02d}" for n in range(1, 31)]
     categories = Counter(c.labels.category for c in cases)
     assert len(categories) == 5 and min(categories.values()) >= 3
     tags = Counter(t for c in cases for t in c.labels.tags)

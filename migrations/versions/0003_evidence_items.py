@@ -1,12 +1,9 @@
 """Create the evidence_items table for normalized evidence.
 
-This revision is linear after 0002, so reaching 0003 also applies seeded failure #1
-(``0002_rename_customer_name``).
-
 Revision ID: 0003_evidence_items
-Revises: 0002_rename_customer_name
+Revises: 0001_baseline
 
-Rollback: alembic downgrade 0002_rename_customer_name (drops evidence_items and its indexes)
+Rollback: alembic downgrade 0001_baseline (drops evidence_items and its indexes)
 """
 
 from collections.abc import Sequence
@@ -16,7 +13,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0003_evidence_items"
-down_revision: str | None = "0002_rename_customer_name"
+down_revision: str | None = "0001_baseline"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

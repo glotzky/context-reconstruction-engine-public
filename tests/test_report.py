@@ -70,6 +70,12 @@ def test_render_report_sections_in_order() -> None:
     assert positions == sorted(positions)
 
 
+def test_render_report_investigate_link_default_and_disabled() -> None:
+    view = build_report(completed_job(), EVIDENCE)
+    assert '<a href="/investigate">Start a new investigation</a>' in render_report(view, href)
+    assert "/investigate" not in render_report(view, href, investigate_href=None)
+
+
 def test_hypotheses_sorted_by_rank_even_if_stored_out_of_order() -> None:
     result = make_result(hypotheses=make_hypotheses()).model_dump(mode="json")
     hyps = result["hypotheses"]["hypotheses"]

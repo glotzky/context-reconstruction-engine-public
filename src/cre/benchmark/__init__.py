@@ -7,5 +7,5 @@ by scoring and never reach the investigator or the provider.
 
 from pathlib import Path
 
-BENCHMARK_VERSION = "benchmark-v1"
+BENCHMARK_VERSION = "benchmark-v2"
 DEFAULT_DATA_DIR = Path(__file__).parent / "data"

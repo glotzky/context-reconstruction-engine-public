@@ -77,7 +77,7 @@ def test_report_ok(report_client: TestClient) -> None:
 
 
 def test_every_evidence_link_resolves(report_client: TestClient) -> None:
-    hrefs = set(re.findall(r'href="([^"]+)"', report_client.get(_report()).text))
+    hrefs = set(re.findall(r'href="(/investigations/[^"]+)"', report_client.get(_report()).text))
     assert hrefs == {_evidence(LOG_ID), _evidence(DEPLOY_ID)}
     for href in hrefs:
         response = report_client.get(href)
@@ -130,6 +130,18 @@ def test_pending_report_shows_status(report_client: TestClient) -> None:
     assert response.status_code == 200
     assert 'id="status"' in response.text and 'id="hypotheses"' not in response.text
     assert "pending" in response.text
+
+
+def test_report_links_to_investigate_form(report_client: TestClient) -> None:
+    response = report_client.get(_report())
+    assert 'id="hypotheses"' in response.text
+    assert 'href="/investigate"' in response.text
+
+
+def test_pending_report_links_to_investigate_form(report_client: TestClient) -> None:
+    response = report_client.get(_report(PENDING_ID))
+    assert 'id="status"' in response.text
+    assert 'href="/investigate"' in response.text
 
 
 def test_failed_report_shows_error_code(report_client: TestClient) -> None:

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "case_id": "case-22",
+  "category": "configuration_drift",
+  "tags": [
+    "lookalike",
+    "misleading_change"
+  ],
+  "answerable": true,
+  "root_cause_id": "rc-22-stale-search-path",
+  "root_cause_summary": "The role default was changed to resolve tables from a stale schema copy whose orders table lacks the queried column.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-220000000001"
+  ],
+  "accepted_keywords": [
+    "search_path",
+    "search path"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-220000000001",
+    "00000000-0000-4000-8000-220000000003"
+  ],
+  "misleading_evidence_ids": [
+    "00000000-0000-4000-8000-220000000002",
+    "00000000-0000-4000-8000-220000000005"
+  ]
+}

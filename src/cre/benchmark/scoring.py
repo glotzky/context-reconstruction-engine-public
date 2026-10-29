@@ -1,9 +1,10 @@
 """Pure, deterministic benchmark metrics. No LLM judge."""
 
 import statistics
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from cre.benchmark.labels import Category, ScenarioLabels, Tag
+from cre.benchmark.manifest import Split
 from cre.benchmark.runner import CaseOutcome, Mode
 from cre.evidence import _Model
 
@@ -11,6 +12,10 @@ from cre.evidence import _Model
 class CaseScore(_Model):
     case_id: str
     mode: Mode
+    split: Split
+    provider: str
+    model: str
+    prompt_versions: dict[str, str]
     category: Category
     tags: list[Tag]
     answerable: bool
@@ -23,6 +28,7 @@ class CaseScore(_Model):
     claims_unverified: int
     latency_seconds: float
     approx_tokens: int
+    cost_usd: float | None
     stop_reason: str
 
 
@@ -42,6 +48,7 @@ class LatencySummary(_Model):
 
 class ModeSummary(_Model):
     mode: Mode
+    split: Split
     cases: int
     errors: int
     answerable: int
@@ -59,7 +66,14 @@ def _ratio(numerator: int, denominator: int) -> float | None:
     return numerator / denominator if denominator else None
 
 
-def score_case(outcome: CaseOutcome, labels: ScenarioLabels) -> CaseScore:
+def score_case(
+    outcome: CaseOutcome,
+    labels: ScenarioLabels,
+    *,
+    split: Split,
+    prompt_versions: Mapping[str, str],
+    cost_usd: float | None,
+) -> CaseScore:
     result = outcome.hypotheses
     errored = result is None
     top = result.hypotheses[0] if result is not None else None
@@ -84,6 +98,10 @@ def score_case(outcome: CaseOutcome, labels: ScenarioLabels) -> CaseScore:
     return CaseScore(
         case_id=outcome.case_id,
         mode=outcome.mode,
+        split=split,
+        provider=outcome.provider,
+        model=outcome.model,
+        prompt_versions=dict(prompt_versions),
         category=labels.category,
         tags=list(labels.tags),
         answerable=labels.answerable,
@@ -96,13 +114,12 @@ def score_case(outcome: CaseOutcome, labels: ScenarioLabels) -> CaseScore:
         claims_unverified=sum(1 for c in claims if c.status == "unverified"),
         latency_seconds=outcome.latency_seconds,
         approx_tokens=outcome.approx_tokens,
+        cost_usd=cost_usd,
         stop_reason=outcome.stop_reason,
     )
 
 
-def summarize(
-    mode: Mode, scores: Sequence[CaseScore], usd_per_1k_tokens: float | None
-) -> ModeSummary:
+def summarize(mode: Mode, split: Split, scores: Sequence[CaseScore]) -> ModeSummary:
     cases = len(scores)
     answerable = [s for s in scores if s.answerable]
     coverages = [s.evidence_coverage for s in scores if s.evidence_coverage is not None]
@@ -112,8 +129,10 @@ def summarize(
     true_abstentions = sum(1 for s in scores if s.abstained and not s.answerable)
     latencies = [s.latency_seconds for s in scores]
     tokens_total = sum(s.approx_tokens for s in scores)
+    costs = [s.cost_usd for s in scores if s.cost_usd is not None]
     return ModeSummary(
         mode=mode,
+        split=split,
         cases=cases,
         errors=sum(1 for s in scores if s.errored),
         answerable=len(answerable),
@@ -134,5 +153,5 @@ def summarize(
         ),
         approx_tokens_total=tokens_total,
         approx_tokens_mean=tokens_total / cases if cases else None,
-        cost_usd=tokens_total / 1000 * usd_per_1k_tokens if usd_per_1k_tokens is not None else None,
+        cost_usd=sum(costs) if costs else None,
     )

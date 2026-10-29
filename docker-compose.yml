@@ -1,4 +1,5 @@
-# Local-only incident lab. No service runs alembic; a human applies migrations explicitly.
+# Local-only incident lab. No service runs alembic; `scripts/lab.sh up` applies `alembic upgrade head`.
+# Seeded failures are triggered only by `cre.lab` (`scripts/lab.sh trigger <name>`), never by migrations.
 services:
   postgres:
     image: postgres:16
@@ -21,15 +22,29 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      CRE_OTEL_EXPORTER: ${CRE_OTEL_EXPORTER:-console}
     ports:
       - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     depends_on:
       postgres:
         condition: service_healthy
 
+  # Processes investigation jobs (cre.investigation_worker) and the legacy `jobs` table.
   worker:
     build: .
     command: ["python", "-m", "cre.worker"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0 if b'cre.worker' in open('/proc/1/cmdline', 'rb').read() else 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     env_file: .env
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}

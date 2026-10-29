@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Start an investigation{% endblock %}
+{% block content %}
+<h1>Start an investigation</h1>
+{% if errors %}
+<section id="errors">
+<h2>Submission rejected</h2>
+<ul>
+{% for error in errors %}<li><code>{{ error.locator }}</code>: {{ error.message }}</li>
+{% endfor %}</ul>
+</section>
+{% endif %}
+<form method="post" action="/investigate">
+<p class="muted">Timestamp must include a timezone. Trace ID or service is required.</p>
+<p><label for="symptom">Symptom</label><br>
+<textarea id="symptom" name="symptom" maxlength="2000" rows="4" cols="60">{{ values.get("symptom", "") }}</textarea></p>
+<p><label for="timestamp">Timestamp</label><br>
+<input type="text" id="timestamp" name="timestamp" maxlength="200" required placeholder="2026-01-01T00:00:05Z" value="{{ values.get("timestamp", "") }}"></p>
+<p><label for="trace_id">Trace ID</label><br>
+<input type="text" id="trace_id" name="trace_id" maxlength="200" value="{{ values.get("trace_id", "") }}"></p>
+<p><label for="service">Service</label><br>
+<input type="text" id="service" name="service" maxlength="200" value="{{ values.get("service", "") }}"></p>
+<p><label for="request_id">Request ID</label><br>
+<input type="text" id="request_id" name="request_id" maxlength="200" value="{{ values.get("request_id", "") }}"></p>
+<p><button type="submit">Start investigation</button></p>
+</form>
+{% endblock %}

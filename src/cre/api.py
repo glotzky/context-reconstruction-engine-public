@@ -17,6 +17,7 @@ from cre.config import Settings, get_settings
 from cre.db import create_db_engine, get_connection
 from cre.evidence_api import router as evidence_router
 from cre.ingest import router as ingest_router
+from cre.investigate_api import router as investigate_router
 from cre.investigation_api import router as investigation_router
 from cre.logging_setup import configure_logging
 from cre.orders import Order, fetch_order
@@ -52,6 +53,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
     app.include_router(evidence_router)
     app.include_router(investigation_router)
     app.include_router(report_router)
+    app.include_router(investigate_router)
 
     @app.get("/health")
     def health() -> dict[str, str]:

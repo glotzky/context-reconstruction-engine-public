@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "case_id": "case-30",
+  "category": "missing_telemetry",
+  "tags": [
+    "insufficient_evidence"
+  ],
+  "answerable": false,
+  "root_cause_id": "rc-30-undetermined",
+  "root_cause_summary": "The underlying trigger is not observable in the provided evidence.",
+  "root_cause_evidence_ids": [],
+  "accepted_keywords": [],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-300000000001",
+    "00000000-0000-4000-8000-300000000002"
+  ],
+  "misleading_evidence_ids": []
+}

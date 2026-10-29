@@ -6,6 +6,7 @@
 {% block content %}
 <h1>Investigation report</h1>
 <p class="muted">Job {{ view.job_id }} · created {{ view.created_at.isoformat() }} · updated {{ view.updated_at.isoformat() }}</p>
+{% if investigate_href %}<p><a href="{{ investigate_href }}">Start a new investigation</a></p>{% endif %}
 {% if not view.complete %}
 <section id="status">
 <h2>Status</h2>

@@ -7,7 +7,13 @@ import pytest
 from pydantic import ValidationError
 
 from cre.evidence import ConfigChangeEvidence, ConfigChangeObserved, Evidence, Provenance, SourceRef
-from cre.normalizers import normalize_commit, normalize_deployment, normalize_log, normalize_span
+from cre.normalizers import (
+    normalize_commit,
+    normalize_config_change,
+    normalize_deployment,
+    normalize_log,
+    normalize_span,
+)
 from cre.retrieval import EvidenceQueryResult
 from cre.timeline import (
     Timeline,
@@ -444,3 +450,72 @@ def test_shuffled_mixed_offsets_give_same_timeline() -> None:
     expected = build_timeline(items)
     assert build_timeline(items[3:] + items[:3]) == expected
     assert build_timeline(list(reversed(items))) == expected
+
+
+def test_config_change_ordered_between_commit_and_deployment_with_caveat() -> None:
+    t0 = DEPLOYED_AT
+    commit = normalize_commit(
+        {**SAMPLE_COMMIT, "committed_at": t0.isoformat(), "version": "v2"},
+        source=COMMIT_SOURCE,
+        retrieved_at=RETRIEVED_AT,
+    ).model_copy(update={"id": UUID(int=20)})
+    deployment = normalize_deployment(
+        {
+            **SAMPLE_DEPLOYMENT,
+            "deployed_at": (t0 + timedelta(minutes=5)).isoformat(),
+            "version": "v2",
+        },
+        source=DEPLOYMENT_SOURCE,
+        retrieved_at=RETRIEVED_AT,
+    ).model_copy(update={"id": UUID(int=21)})
+    (config,) = normalize_config_change(
+        {
+            "changed_at": (t0 + timedelta(minutes=10)).isoformat(),
+            "service": "cre-lab-api",
+            "version": "v2",
+            "actor": "alice@example.com",
+            "changes": [
+                {"key": "db.pool_size", "old_value": "fake-old-5", "new_value": "fake-new-50"}
+            ],
+        },
+        source=CONFIG_SOURCE,
+        retrieved_at=RETRIEVED_AT,
+    )
+    config = config.model_copy(update={"id": UUID(int=22)})
+    log = _bare_log(23, t0 + timedelta(minutes=12))
+
+    timeline = build_timeline([log, config, commit, deployment])
+
+    assert [e.evidence_ids for e in timeline.entries] == [
+        [commit.id],
+        [deployment.id],
+        [config.id],
+        [log.id],
+    ]
+    assert [e.entry_type for e in timeline.entries] == [
+        "code_commit",
+        "deployment",
+        "config_change",
+        "runtime_symptom",
+    ]
+    config_entry = timeline.entries[2]
+    assert config_entry.entry_type == "config_change"
+    assert config_entry.evidence_kind == "config_change"
+    assert "db.pool_size" in config_entry.summary
+    assert "fake-old-5" not in config_entry.summary
+    assert "fake-new-50" not in config_entry.summary
+
+    linked = _rel(timeline, deployment, config)
+    assert linked.basis == "explicit"
+    assert "deployment_version" in linked.identifiers
+    assert "not a determination of cause" in linked.statement
+
+    lead = _rel(timeline, config, log)
+    assert lead.basis == "temporal_only"
+    assert lead.is_lead is True
+    assert "not evidence of causation" in lead.statement
+
+    for rel in timeline.relationships:
+        assert not re.search(r"caused|root cause", rel.statement, re.IGNORECASE)
+    for entry in timeline.entries:
+        assert not re.search(r"caused|root cause", entry.summary, re.IGNORECASE)

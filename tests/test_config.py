@@ -24,6 +24,9 @@ ENV_VARS = [
     "CRE_LLM_API_KEY",
     "CRE_LLM_TIMEOUT_SECONDS",
     "CRE_LLM_MAX_OUTPUT_TOKENS",
+    "CRE_LLM_MAX_RETRIES",
+    "CRE_LLM_PRICE_INPUT_PER_MTOK",
+    "CRE_LLM_PRICE_OUTPUT_PER_MTOK",
     "CRE_LLM_BUNDLE_MAX_ITEMS",
     "CRE_LLM_BUNDLE_MAX_CHARS",
     "CRE_LLM_BUNDLE_MAX_ITEM_CHARS",
@@ -185,6 +188,21 @@ def test_llm_defaults() -> None:
     assert settings.llm_bundle_max_items == 50
     assert settings.llm_bundle_max_chars == 48_000
     assert settings.llm_bundle_max_item_chars == 2000
+    assert settings.llm_max_retries == 2
+    assert settings.llm_price_input_per_mtok == 0.0
+    assert settings.llm_price_output_per_mtok == 0.0
+
+
+def test_llm_provider_anthropic_accepted(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CRE_LLM_PROVIDER", "anthropic")
+    monkeypatch.setenv("CRE_LLM_MAX_RETRIES", "5")
+    monkeypatch.setenv("CRE_LLM_PRICE_INPUT_PER_MTOK", "3")
+    monkeypatch.setenv("CRE_LLM_PRICE_OUTPUT_PER_MTOK", "15.5")
+    settings = Settings()
+    assert settings.llm_provider == "anthropic"
+    assert settings.llm_max_retries == 5
+    assert settings.llm_price_input_per_mtok == 3.0
+    assert settings.llm_price_output_per_mtok == 15.5
 
 
 @pytest.mark.parametrize(
@@ -197,6 +215,10 @@ def test_llm_defaults() -> None:
         ("CRE_LLM_BUNDLE_MAX_CHARS", "10"),
         ("CRE_LLM_BUNDLE_MAX_ITEM_CHARS", "199"),
         ("CRE_LLM_PROVIDER", "openai"),
+        ("CRE_LLM_MAX_RETRIES", "-1"),
+        ("CRE_LLM_MAX_RETRIES", "6"),
+        ("CRE_LLM_PRICE_INPUT_PER_MTOK", "-0.1"),
+        ("CRE_LLM_PRICE_OUTPUT_PER_MTOK", "1001"),
     ],
 )
 def test_llm_settings_invalid_raise(monkeypatch: pytest.MonkeyPatch, name: str, value: str) -> None:

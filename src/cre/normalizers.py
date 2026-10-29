@@ -9,13 +9,22 @@ import hashlib
 import json
 from collections.abc import Mapping
 from datetime import datetime
-from typing import Any
+from typing import Annotated, Any, Self
 
-from pydantic import ValidationError
+from pydantic import (
+    AwareDatetime,
+    Field,
+    JsonValue,
+    StringConstraints,
+    ValidationError,
+    model_validator,
+)
 
 from cre.evidence import (
     CommitEvidence,
     CommitObserved,
+    ConfigChangeEvidence,
+    ConfigChangeObserved,
     DeploymentEvidence,
     DeploymentObserved,
     LogEvidence,
@@ -24,8 +33,9 @@ from cre.evidence import (
     SourceRef,
     SpanEvidence,
     SpanObserved,
+    _Model,
 )
-from cre.redaction import redact
+from cre.redaction import REDACTED, is_sensitive_key, redact, redact_text
 
 
 class NormalizationError(ValueError):
@@ -74,7 +84,42 @@ _DEPLOYMENT_MAPPED_KEYS = frozenset(
 )
 
 
-def _load(raw: Mapping[str, Any] | str) -> dict[str, Any]:
+CONFIG_CHANGES_MAX = 500
+ConfigKey = Annotated[str, StringConstraints(min_length=1, max_length=200)]
+NonEmptyStr = Annotated[str, StringConstraints(min_length=1)]
+
+
+class ConfigKeyChange(_Model):
+    key: ConfigKey
+    old_value: JsonValue = None
+    new_value: JsonValue = None
+
+    @model_validator(mode="after")
+    def _values_differ(self) -> Self:
+        if self.old_value is None and self.new_value is None:
+            raise ValueError("old_value and new_value cannot both be null")
+        if self.old_value == self.new_value:
+            raise ValueError("old_value and new_value are equal")
+        return self
+
+
+class ConfigChangeRecord(_Model):
+    changed_at: AwareDatetime
+    service: NonEmptyStr
+    version: NonEmptyStr
+    actor: NonEmptyStr
+    change_id: NonEmptyStr | None = None
+    changes: Annotated[list[ConfigKeyChange], Field(min_length=1, max_length=CONFIG_CHANGES_MAX)]
+
+    @model_validator(mode="after")
+    def _unique_keys(self) -> Self:
+        keys = [change.key for change in self.changes]
+        if len(set(keys)) != len(keys):
+            raise ValueError("duplicate config key in changes")
+        return self
+
+
+def _parse(raw: Mapping[str, Any] | str) -> dict[str, Any]:
     data: Any = raw
     if isinstance(raw, str):
         try:
@@ -83,7 +128,11 @@ def _load(raw: Mapping[str, Any] | str) -> dict[str, Any]:
             raise NormalizationError(f"invalid JSON: {exc.msg}") from exc
     if not isinstance(data, Mapping):
         raise NormalizationError("input must be a JSON object")
-    redacted: dict[str, Any] = redact(dict(data))
+    return dict(data)
+
+
+def _load(raw: Mapping[str, Any] | str) -> dict[str, Any]:
+    redacted: dict[str, Any] = redact(_parse(raw))
     return redacted
 
 
@@ -307,3 +356,69 @@ def normalize_commit(
         )
     except ValidationError as exc:
         raise NormalizationError(_validation_message("commit", exc)) from exc
+
+
+def _config_value(key: str, value: JsonValue) -> str | None:
+    if value is None:
+        return None
+    if is_sensitive_key(key):
+        return REDACTED
+    redacted = redact(value)
+    if isinstance(redacted, str):
+        return redacted
+    return json.dumps(redacted, sort_keys=True, separators=(",", ":"))
+
+
+def normalize_config_change(
+    record: Mapping[str, Any] | str,
+    *,
+    source: SourceRef,
+    retrieved_at: datetime,
+    retrieval_method: str = "config_change_record",
+) -> list[ConfigChangeEvidence]:
+    data = _parse(record)
+    try:
+        parsed = ConfigChangeRecord.model_validate(data)
+    except ValidationError as exc:
+        raise NormalizationError(_validation_message("config change", exc)) from exc
+    service = redact_text(parsed.service)
+    version = redact_text(parsed.version)
+    actor = redact_text(parsed.actor)
+    change_id = redact_text(parsed.change_id) if parsed.change_id is not None else None
+    items: list[ConfigChangeEvidence] = []
+    for index, change in enumerate(parsed.changes):
+        key = redact_text(change.key)
+        old_value = _config_value(change.key, change.old_value)
+        new_value = _config_value(change.key, change.new_value)
+        redacted = {
+            "changed_at": parsed.changed_at.isoformat(),
+            "service": service,
+            "version": version,
+            "actor": actor,
+            "change_id": change_id,
+            "key": key,
+            "old_value": old_value,
+            "new_value": new_value,
+        }
+        locator = f"{source.locator}.changes[{index}]" if source.locator else f"changes[{index}]"
+        try:
+            items.append(
+                ConfigChangeEvidence(
+                    timestamp=parsed.changed_at,
+                    provenance=_provenance(
+                        redacted,
+                        source.model_copy(update={"locator": locator}),
+                        retrieved_at,
+                        retrieval_method,
+                        {"config_key": key, "change_id": change_id},
+                    ),
+                    service=service,
+                    deployment_version=version,
+                    observed=ConfigChangeObserved(
+                        key=key, old_value=old_value, new_value=new_value, changed_by=actor
+                    ),
+                )
+            )
+        except ValidationError as exc:
+            raise NormalizationError(_validation_message("config change", exc)) from exc
+    return items

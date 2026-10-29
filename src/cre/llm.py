@@ -26,6 +26,21 @@ class LLMRequest(_Model):
     timeout_seconds: Annotated[float, Field(gt=0)]
 
 
+class LLMUsage(_Model):
+    input_tokens: Annotated[int, Field(ge=0)]
+    output_tokens: Annotated[int, Field(ge=0)]
+    cost: Annotated[float, Field(ge=0)]
+
+
+def compute_cost(
+    input_tokens: int,
+    output_tokens: int,
+    price_input_per_mtok: float,
+    price_output_per_mtok: float,
+) -> float:
+    return (input_tokens * price_input_per_mtok + output_tokens * price_output_per_mtok) / 1_000_000
+
+
 class LLMProvider(Protocol):
     name: str
     model: str
@@ -69,4 +84,12 @@ def get_provider(settings: Settings) -> LLMProvider:
         return FakeProvider(
             lambda _request: FAKE_EMPTY_RESPONSE, model=settings.llm_model or "fake-model"
         )
+    if settings.llm_provider == "anthropic":
+        if not settings.llm_model:
+            raise ValueError("CRE_LLM_MODEL is required for the anthropic provider")
+        if not settings.llm_api_key.get_secret_value():
+            raise ValueError("CRE_LLM_API_KEY is required for the anthropic provider")
+        from cre.llm_anthropic import AnthropicProvider
+
+        return AnthropicProvider.from_settings(settings)
     raise ValueError("unsupported LLM provider")

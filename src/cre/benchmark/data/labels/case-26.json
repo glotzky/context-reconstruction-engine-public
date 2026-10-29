@@ -1,0 +1,22 @@
+{
+  "category": "configuration_drift",
+  "tags": [
+    "lookalike"
+  ],
+  "root_cause_id": "rc-26-short-timeout",
+  "root_cause_summary": "A client setting was lowered below the normal response time of the dependency.",
+  "accepted_keywords": [
+    "timeout"
+  ],
+  "schema_version": 1,
+  "case_id": "case-26",
+  "answerable": true,
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-260000000001"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-260000000001",
+    "00000000-0000-4000-8000-260000000002"
+  ],
+  "misleading_evidence_ids": []
+}

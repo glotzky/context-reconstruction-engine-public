@@ -283,8 +283,14 @@ _env = Environment(
 _env.filters["json_text"] = _json_text
 
 
-def render_report(view: ReportView, evidence_href: Callable[[UUID], str]) -> str:
-    return _env.get_template("report.html").render(view=view, evidence_href=evidence_href)
+def render_report(
+    view: ReportView,
+    evidence_href: Callable[[UUID], str],
+    investigate_href: str | None = "/investigate",
+) -> str:
+    return _env.get_template("report.html").render(
+        view=view, evidence_href=evidence_href, investigate_href=investigate_href
+    )
 
 
 def render_evidence(job_id: UUID, item: Evidence, report_href: str) -> str:
@@ -299,6 +305,10 @@ def render_evidence(job_id: UUID, item: Evidence, report_href: str) -> str:
         max_chars=CONTENT_MAX_CHARS,
         report_href=report_href,
     )
+
+
+def render_investigate_form(values: Mapping[str, str], errors: Sequence[Mapping[str, str]]) -> str:
+    return _env.get_template("investigate.html").render(values=values, errors=errors)
 
 
 def render_not_found() -> str:

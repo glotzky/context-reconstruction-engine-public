@@ -35,7 +35,7 @@ dev = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-cre = ["py.typed", "benchmark/data/*/*.json", "templates/*.html"]
+cre = ["py.typed", "benchmark/data/*/*.json", "benchmark/data/manifest.json", "templates/*.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -27,6 +27,21 @@ provider interface (`cre.llm`); only a fake provider exists today.
 4. `GET /investigations/{id}/report` reloads the job, loads up to `REPORT_MAX_EVIDENCE` of the
    result's evidence ids, rebuilds the timeline with default parameters and renders the report.
 
+## Incident lab and benchmark
+
+`cre.lab` applies and reverts seeded failures from a closed registry of static SQL, never via
+alembic. `schema-rename` renames `public.orders.customer_name`; `stale-search-path` points the
+role's per-database `search_path` at a stale `lab_stale.orders` copy and records a
+`config_change` evidence item. Both produce the same `UndefinedColumn` 500. Only one failure may
+be applied at a time: `apply` raises `LabStateError` before any DDL if another is applied.
+
+The benchmark (`cre.benchmark`) has 30 labeled cases split by `data/manifest.json` into dev (20)
+and held-out (10) sets that are reported separately. It runs offline with the fake provider by
+default; `--provider anthropic` is opt-in and gated by a settings check, a printed estimate,
+confirmation and a per-call spend guard (`cre.benchmark.cost`). `case-21` and `case-22` are a
+same-symptom pair (migration vs config change) with identical initial evidence apart from ids;
+labels stay in `labels/` and never reach the investigator.
+
 ## Trust boundaries
 
 - **Untrusted input.** Logs, traces, repository content, telemetry, model output and stored

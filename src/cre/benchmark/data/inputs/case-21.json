@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "case_id": "case-21",
+  "scenario_version": 1,
+  "anchor": "2026-02-21T09:30:00Z",
+  "initial_evidence_ids": [
+    "00000000-0000-4000-8000-210000000003",
+    "00000000-0000-4000-8000-210000000004"
+  ],
+  "evidence": [
+    {
+      "id": "00000000-0000-4000-8000-210000000001",
+      "kind": "commit",
+      "timestamp": "2026-02-21T09:18:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "01"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "sha": "2101c0ffee0101abcdef",
+        "message": "Rename customer_name column",
+        "author": "Fake Developer",
+        "files": [
+          "migrations/versions/0002_rename_customer_name.py"
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-210000000002",
+      "kind": "deployment",
+      "timestamp": "2026-02-21T09:20:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "02"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "deployment_version": "0.2.0",
+      "observed": {
+        "version": "0.2.0",
+        "status": "succeeded",
+        "environment": "lab",
+        "actor": "fake-deployer",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-210000000003",
+      "kind": "log",
+      "timestamp": "2026-02-21T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "03"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "2100a1b2c3d4e5f60718293a4b5c6d7e",
+      "request_id": "demo-21",
+      "observed": {
+        "level": "ERROR",
+        "message": "order_lookup_failed: (psycopg.errors.UndefinedColumn) column \"customer_name\" does not exist",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-210000000004",
+      "kind": "span",
+      "timestamp": "2026-02-21T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "04"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "2100a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "2104b7ad6b716920",
+      "observed": {
+        "name": "GET /orders/{order_id}",
+        "start_time": "2026-02-21T09:29:59.950000+00:00",
+        "end_time": "2026-02-21T09:30:00+00:00",
+        "span_kind": "SERVER",
+        "status_code": "ERROR",
+        "attributes": {},
+        "status_message": "UndefinedColumn"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-210000000005",
+      "kind": "log",
+      "timestamp": "2026-02-21T09:28:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "05"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "request served",
+        "logger": "app",
+        "attributes": {}
+      }
+    }
+  ]
+}

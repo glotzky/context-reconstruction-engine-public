@@ -22,6 +22,7 @@ from cre.ingest import store_items
 from cre.normalizers import (
     NormalizationError,
     normalize_commit,
+    normalize_config_change,
     normalize_deployment,
     normalize_log,
     normalize_span,
@@ -29,6 +30,9 @@ from cre.normalizers import (
 from cre.otlp import OtlpError, flatten_otlp_spans
 
 GIT_STDERR_LIMIT = 500
+STDOUT_MAX_LINES_DEFAULT = 10_000
+STDOUT_MAX_LINES_LIMIT = 100_000
+STDOUT_MAX_LINE_CHARS = 65_536
 
 
 class CollectorError(RuntimeError):
@@ -55,6 +59,70 @@ def collect_log_lines(
                 line,
                 source=source.model_copy(update={"locator": locator}),
                 retrieved_at=retrieved_at,
+            )
+        except NormalizationError as exc:
+            items.append(CollectedItem(locator=locator, evidence=None, error=str(exc)))
+        else:
+            items.append(CollectedItem(locator=locator, evidence=evidence, error=None))
+    return items
+
+
+def _collect_stdout_line(
+    line: str, *, locator: str, source_name: str, retrieved_at: datetime
+) -> Evidence:
+    try:
+        data: Any = json.loads(line)
+    except json.JSONDecodeError:
+        data = line
+    if isinstance(data, Mapping) and isinstance(data.get("context"), Mapping):
+        return normalize_span(
+            data,
+            source=SourceRef(source_type="otel_span", name=source_name, locator=locator),
+            retrieved_at=retrieved_at,
+            retrieval_method="otel_sdk_console_json",
+        )
+    return normalize_log(
+        data if isinstance(data, Mapping) else line,
+        source=SourceRef(source_type="structured_log", name=source_name, locator=locator),
+        retrieved_at=retrieved_at,
+        retrieval_method="container_stdout_json",
+    )
+
+
+def collect_stdout_lines(
+    lines: Iterable[str],
+    *,
+    source_name: str,
+    retrieved_at: datetime,
+    max_lines: int = STDOUT_MAX_LINES_DEFAULT,
+) -> list[CollectedItem]:
+    """Collect mixed JSON log lines and SDK console span lines (one JSON object per line)."""
+    items: list[CollectedItem] = []
+    for number, line in enumerate(lines, start=1):
+        if number > max_lines:
+            items.append(
+                CollectedItem(
+                    locator=f"line:{number}",
+                    evidence=None,
+                    error="line limit reached; remaining input ignored",
+                )
+            )
+            break
+        if not line.strip():
+            continue
+        locator = f"line:{number}"
+        if len(line.rstrip("\r\n")) > STDOUT_MAX_LINE_CHARS:
+            items.append(
+                CollectedItem(
+                    locator=locator,
+                    evidence=None,
+                    error=f"line exceeds {STDOUT_MAX_LINE_CHARS} characters",
+                )
+            )
+            continue
+        try:
+            evidence = _collect_stdout_line(
+                line, locator=locator, source_name=source_name, retrieved_at=retrieved_at
             )
         except NormalizationError as exc:
             items.append(CollectedItem(locator=locator, evidence=None, error=str(exc)))
@@ -168,14 +236,7 @@ def collect_git_commits(
     return items
 
 
-def _collect_fixture(
-    path: Path,
-    *,
-    retrieved_at: datetime,
-    source_type: str,
-    retrieval_method: str,
-    normalize: Callable[..., Evidence],
-) -> list[CollectedItem]:
+def _read_fixture_array(path: Path) -> list[Any]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except OSError as exc:
@@ -184,8 +245,19 @@ def _collect_fixture(
         raise CollectorError(f"{path.name}: invalid JSON") from exc
     if not isinstance(payload, list):
         raise CollectorError(f"{path.name}: must be a JSON array")
+    return payload
+
+
+def _collect_fixture(
+    path: Path,
+    *,
+    retrieved_at: datetime,
+    source_type: str,
+    retrieval_method: str,
+    normalize: Callable[..., Evidence],
+) -> list[CollectedItem]:
     items: list[CollectedItem] = []
-    for index, element in enumerate(payload):
+    for index, element in enumerate(_read_fixture_array(path)):
         locator = f"[{index}]"
         if not isinstance(element, Mapping):
             items.append(
@@ -226,12 +298,42 @@ def collect_deployment_fixture(path: Path, *, retrieved_at: datetime) -> list[Co
     )
 
 
+def collect_config_change_fixture(path: Path, *, retrieved_at: datetime) -> list[CollectedItem]:
+    items: list[CollectedItem] = []
+    for index, element in enumerate(_read_fixture_array(path)):
+        locator = f"[{index}]"
+        if not isinstance(element, Mapping):
+            items.append(
+                CollectedItem(locator=locator, evidence=None, error="element must be an object")
+            )
+            continue
+        try:
+            evidence_items = normalize_config_change(
+                element,
+                source=SourceRef(source_type="config_change", name=path.name, locator=locator),
+                retrieved_at=retrieved_at,
+                retrieval_method="config_change_fixture",
+            )
+        except NormalizationError as exc:
+            items.append(CollectedItem(locator=locator, evidence=None, error=str(exc)))
+            continue
+        items.extend(
+            CollectedItem(locator=f"{locator}.changes[{j}]", evidence=evidence, error=None)
+            for j, evidence in enumerate(evidence_items)
+        )
+    return items
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m cre.collectors", description="Collect local evidence into the database."
     )
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("logs", help="structured JSON log file").add_argument("path", type=Path)
+    stdout = commands.add_parser("stdout", help="mixed JSON log and console span lines")
+    stdout.add_argument("path", help="file path, or - for stdin")
+    stdout.add_argument("--source-name", default="api")
+    stdout.add_argument("--max-lines", type=int, default=STDOUT_MAX_LINES_DEFAULT)
     commands.add_parser("traces", help="OTLP/JSON trace file").add_argument("path", type=Path)
     git = commands.add_parser("git", help="local git history")
     git.add_argument("repo", type=Path)
@@ -240,7 +342,33 @@ def _build_parser() -> argparse.ArgumentParser:
     commands.add_parser("deployments", help="deployment fixture JSON array").add_argument(
         "path", type=Path
     )
+    commands.add_parser("config-changes", help="config change fixture JSON array").add_argument(
+        "path", type=Path
+    )
     return parser
+
+
+def _collect_stdout(args: argparse.Namespace, retrieved_at: datetime) -> list[CollectedItem]:
+    if not 1 <= args.max_lines <= STDOUT_MAX_LINES_LIMIT:
+        raise CollectorError(f"--max-lines must be between 1 and {STDOUT_MAX_LINES_LIMIT}")
+    try:
+        if args.path == "-":
+            return collect_stdout_lines(
+                sys.stdin,
+                source_name=args.source_name,
+                retrieved_at=retrieved_at,
+                max_lines=args.max_lines,
+            )
+        with Path(args.path).open(encoding="utf-8") as handle:
+            return collect_stdout_lines(
+                handle,
+                source_name=args.source_name,
+                retrieved_at=retrieved_at,
+                max_lines=args.max_lines,
+            )
+    except (OSError, UnicodeDecodeError) as exc:
+        name = "stdin" if args.path == "-" else args.path
+        raise CollectorError(f"cannot read {name}") from exc
 
 
 def _collect(args: argparse.Namespace, retrieved_at: datetime, max_bytes: int) -> list[Any]:
@@ -254,6 +382,8 @@ def _collect(args: argparse.Namespace, retrieved_at: datetime, max_bytes: int) -
                 )
         except (OSError, UnicodeDecodeError) as exc:
             raise CollectorError(f"cannot read {args.path}") from exc
+    if args.command == "stdout":
+        return _collect_stdout(args, retrieved_at)
     if args.command == "traces":
         return collect_otlp_file(args.path, retrieved_at=retrieved_at, max_bytes=max_bytes)
     if args.command == "git":
@@ -265,6 +395,8 @@ def _collect(args: argparse.Namespace, retrieved_at: datetime, max_bytes: int) -
             raise CollectorError(str(exc)) from exc
     if args.command == "commits":
         return collect_commit_fixture(args.path, retrieved_at=retrieved_at)
+    if args.command == "config-changes":
+        return collect_config_change_fixture(args.path, retrieved_at=retrieved_at)
     return collect_deployment_fixture(args.path, retrieved_at=retrieved_at)
 
 

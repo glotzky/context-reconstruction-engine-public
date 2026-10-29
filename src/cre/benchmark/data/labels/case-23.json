@@ -1,0 +1,21 @@
+{
+  "category": "downstream_failure",
+  "root_cause_id": "rc-23-dependency-504",
+  "root_cause_summary": "The inventory dependency returned gateway timeouts to the reservation calls.",
+  "accepted_keywords": [
+    "504"
+  ],
+  "schema_version": 1,
+  "case_id": "case-23",
+  "answerable": true,
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-230000000003",
+    "00000000-0000-4000-8000-230000000004"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-230000000002",
+    "00000000-0000-4000-8000-230000000003",
+    "00000000-0000-4000-8000-230000000004"
+  ],
+  "misleading_evidence_ids": []
+}

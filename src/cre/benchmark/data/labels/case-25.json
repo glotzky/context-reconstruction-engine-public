@@ -1,0 +1,21 @@
+{
+  "category": "schema_incompatibility",
+  "root_cause_id": "rc-25-required-column",
+  "root_cause_summary": "A schema change required a column that the insert path does not provide.",
+  "accepted_keywords": [
+    "not null"
+  ],
+  "schema_version": 1,
+  "case_id": "case-25",
+  "answerable": true,
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-250000000001",
+    "00000000-0000-4000-8000-250000000002"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-250000000001",
+    "00000000-0000-4000-8000-250000000002",
+    "00000000-0000-4000-8000-250000000003"
+  ],
+  "misleading_evidence_ids": []
+}

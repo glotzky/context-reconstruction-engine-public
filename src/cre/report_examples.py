@@ -45,7 +45,9 @@ def write_examples(out_dir: Path, source: ReportSource, job_id: UUID = DEMO_JOB_
     }
     out_dir.mkdir(parents=True, exist_ok=True)
     report_path = out_dir / REPORT_FILE
-    report_path.write_text(render_report(view, evidence_file), encoding="utf-8")
+    report_path.write_text(
+        render_report(view, evidence_file, investigate_href=None), encoding="utf-8"
+    )
     written = [report_path]
     for item in source.load_evidence(sorted(linked, key=str)):
         path = out_dir / evidence_file(item.id)

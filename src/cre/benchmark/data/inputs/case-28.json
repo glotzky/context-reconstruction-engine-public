@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "case_id": "case-28",
+  "scenario_version": 1,
+  "anchor": "2026-03-06T09:30:00Z",
+  "initial_evidence_ids": [
+    "00000000-0000-4000-8000-280000000001",
+    "00000000-0000-4000-8000-280000000002"
+  ],
+  "evidence": [
+    {
+      "id": "00000000-0000-4000-8000-280000000001",
+      "kind": "log",
+      "timestamp": "2026-03-06T09:30:00Z",
+      "service": "fake-reports",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "01"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "ERROR",
+        "message": "report_build_failed: result row did not match expected shape",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-280000000002",
+      "kind": "log",
+      "timestamp": "2026-03-06T09:30:30Z",
+      "service": "fake-reports",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "02"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "ERROR",
+        "message": "report_build_failed: result row did not match expected shape",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-280000000003",
+      "kind": "log",
+      "timestamp": "2026-03-06T09:23:20Z",
+      "service": "fake-reports",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "03"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "report export started",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-280000000004",
+      "kind": "log",
+      "timestamp": "2026-03-06T09:13:20Z",
+      "service": "fake-reports",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "04"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "service heartbeat",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-280000000005",
+      "kind": "log",
+      "timestamp": "2026-03-06T09:32:00Z",
+      "service": "fake-reports",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "05"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "ERROR",
+        "message": "report_build_failed: result row did not match expected shape",
+        "logger": "app",
+        "attributes": {}
+      }
+    }
+  ]
+}
