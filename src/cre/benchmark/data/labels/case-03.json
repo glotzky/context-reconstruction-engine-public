@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "case_id": "case-03",
+  "category": "schema_incompatibility",
+  "answerable": true,
+  "root_cause_id": "rc-03-new-status-value",
+  "root_cause_summary": "The producer started emitting a status value that the consumer's schema does not know.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-030000000001",
+    "00000000-0000-4000-8000-030000000002"
+  ],
+  "accepted_keywords": [
+    "enum"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-030000000001",
+    "00000000-0000-4000-8000-030000000002",
+    "00000000-0000-4000-8000-030000000003"
+  ],
+  "misleading_evidence_ids": []
+}

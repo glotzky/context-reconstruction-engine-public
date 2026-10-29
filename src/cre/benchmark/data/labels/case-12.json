@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "case_id": "case-12",
+  "category": "downstream_failure",
+  "answerable": true,
+  "root_cause_id": "rc-12-moved-listener",
+  "root_cause_summary": "The dependency's own release changed where it accepts connections.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-120000000001",
+    "00000000-0000-4000-8000-120000000005"
+  ],
+  "accepted_keywords": [
+    "port",
+    "8081"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-120000000001",
+    "00000000-0000-4000-8000-120000000002"
+  ],
+  "misleading_evidence_ids": []
+}

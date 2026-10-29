@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "case_id": "case-14",
+  "category": "race_condition",
+  "answerable": true,
+  "root_cause_id": "rc-14-double-claim",
+  "root_cause_summary": "A shortened claim timeout let a second worker pick up a job still in progress.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-140000000001",
+    "00000000-0000-4000-8000-140000000002",
+    "00000000-0000-4000-8000-140000000003"
+  ],
+  "accepted_keywords": [
+    "lease"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-140000000001",
+    "00000000-0000-4000-8000-140000000003",
+    "00000000-0000-4000-8000-140000000004"
+  ],
+  "misleading_evidence_ids": []
+}

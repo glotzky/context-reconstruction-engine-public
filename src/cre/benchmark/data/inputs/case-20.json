@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "case_id": "case-20",
+  "scenario_version": 1,
+  "anchor": "2026-02-20T09:30:00Z",
+  "initial_evidence_ids": [
+    "00000000-0000-4000-8000-200000000003"
+  ],
+  "evidence": [
+    {
+      "id": "00000000-0000-4000-8000-200000000001",
+      "kind": "config_change",
+      "timestamp": "2026-02-20T09:29:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "01"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "key": "tracing.sample_ratio",
+        "old_value": "1.0",
+        "new_value": "0.1",
+        "changed_by": "fake-operator"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-200000000002",
+      "kind": "deployment",
+      "timestamp": "2026-02-20T09:20:00Z",
+      "service": "fake-inventory",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "02"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "deployment_version": "2.2.0",
+      "observed": {
+        "version": "2.2.0",
+        "status": "succeeded",
+        "environment": "lab",
+        "actor": "fake-deployer",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-200000000003",
+      "kind": "log",
+      "timestamp": "2026-02-20T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "03"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "2001a1b2c3d4e5f60718293a4b5c6d7e",
+      "observed": {
+        "level": "ERROR",
+        "message": "inventory_check_failed: read timeout after 2.0s",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-200000000004",
+      "kind": "span",
+      "timestamp": "2026-02-20T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "04"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "2001a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "2004b7ad6b716920",
+      "observed": {
+        "name": "GET fake-inventory /stock",
+        "start_time": "2026-02-20T09:29:58+00:00",
+        "end_time": "2026-02-20T09:30:00+00:00",
+        "span_kind": "CLIENT",
+        "status_code": "ERROR",
+        "attributes": {},
+        "status_message": "read timeout"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-200000000005",
+      "kind": "span",
+      "timestamp": "2026-02-20T09:30:03Z",
+      "service": "fake-inventory",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "05"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "2001a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "2005b7ad6b716920",
+      "observed": {
+        "name": "GET /stock",
+        "start_time": "2026-02-20T09:29:58+00:00",
+        "end_time": "2026-02-20T09:30:03+00:00",
+        "span_kind": "SERVER",
+        "status_code": "UNSET",
+        "attributes": {},
+        "parent_span_id": "2004b7ad6b716920"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "case_id": "case-16",
+  "category": "race_condition",
+  "tags": [
+    "insufficient_evidence"
+  ],
+  "answerable": false,
+  "root_cause_id": "rc-16-undetermined",
+  "root_cause_summary": "The interleaving source is not observable.",
+  "root_cause_evidence_ids": [],
+  "accepted_keywords": [],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-160000000001",
+    "00000000-0000-4000-8000-160000000002"
+  ],
+  "misleading_evidence_ids": []
+}

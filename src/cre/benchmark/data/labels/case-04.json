@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "case_id": "case-04",
+  "category": "schema_incompatibility",
+  "tags": [
+    "misleading_change"
+  ],
+  "answerable": true,
+  "root_cause_id": "rc-04-required-column",
+  "root_cause_summary": "A required column was added without a default and the application does not set it on insert.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-040000000001",
+    "00000000-0000-4000-8000-040000000002"
+  ],
+  "accepted_keywords": [
+    "not null",
+    "loyalty_tier"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-040000000001",
+    "00000000-0000-4000-8000-040000000004"
+  ],
+  "misleading_evidence_ids": [
+    "00000000-0000-4000-8000-040000000003"
+  ]
+}

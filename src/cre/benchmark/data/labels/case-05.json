@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "case_id": "case-05",
+  "category": "configuration_drift",
+  "answerable": true,
+  "root_cause_id": "rc-05-shrunk-limit",
+  "root_cause_summary": "A configuration change shrank the database connection limit far below the request concurrency.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-050000000001"
+  ],
+  "accepted_keywords": [
+    "pool"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-050000000001",
+    "00000000-0000-4000-8000-050000000002"
+  ],
+  "misleading_evidence_ids": []
+}

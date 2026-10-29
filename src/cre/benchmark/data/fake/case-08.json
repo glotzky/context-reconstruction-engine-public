@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "case_id": "case-08",
+  "engine": [
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Settlement export receives an unexpected response format",
+          "explanation": "The export fails while parsing a response.",
+          "claims": [
+            {
+              "text": "The failure is visible in the error evidence.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-080000000001",
+                "00000000-0000-4000-8000-080000000002"
+              ],
+              "status": "verified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-080000000001",
+            "00000000-0000-4000-8000-080000000002"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "medium",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No change, deployment or trace evidence explains when the behaviour started."
+      ]
+    },
+    {
+      "action": "call_tools",
+      "tool_calls": [
+        {
+          "tool": "fetch_by_service_window",
+          "arguments": {
+            "service": "fake-settlement",
+            "window_before_seconds": 900
+          }
+        }
+      ],
+      "reason": "look for related changes"
+    },
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Cause cannot be determined from the available evidence",
+          "explanation": "Only error logs are present. No change or trace evidence was found.",
+          "claims": [
+            {
+              "text": "The cited evidence is consistent with this explanation.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-080000000001",
+                "00000000-0000-4000-8000-080000000002"
+              ],
+              "status": "verified"
+            },
+            {
+              "text": "The exact mechanism was not directly observed.",
+              "evidence_ids": [],
+              "status": "unverified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-080000000001",
+            "00000000-0000-4000-8000-080000000002"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "high",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        },
+        {
+          "rank": 2,
+          "title": "Settlement export receives an unexpected response format",
+          "explanation": "The export fails while parsing a response.",
+          "claims": [
+            {
+              "text": "The error evidence shows the symptom only.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-080000000001",
+                "00000000-0000-4000-8000-080000000002"
+              ],
+              "status": "verified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-080000000001",
+            "00000000-0000-4000-8000-080000000002"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "high",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No change, deployment or trace evidence explains when the behaviour started."
+      ]
+    },
+    {
+      "action": "conclude",
+      "tool_calls": [],
+      "reason": "evidence reviewed"
+    }
+  ],
+  "baseline": [
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Cause cannot be determined from the available evidence",
+          "explanation": "Only error logs are present.",
+          "claims": [
+            {
+              "text": "The windowed evidence shows this.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-080000000001",
+                "00000000-0000-4000-8000-080000000002"
+              ],
+              "status": "verified"
+            },
+            {
+              "text": "No earlier changes were considered.",
+              "evidence_ids": [],
+              "status": "unverified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-080000000001",
+            "00000000-0000-4000-8000-080000000002"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "high",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No change, deployment or trace evidence explains when the behaviour started."
+      ]
+    }
+  ]
+}

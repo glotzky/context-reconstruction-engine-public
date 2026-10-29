@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "case_id": "case-08",
+  "category": "configuration_drift",
+  "tags": [
+    "insufficient_evidence"
+  ],
+  "answerable": false,
+  "root_cause_id": "rc-08-undetermined",
+  "root_cause_summary": "The underlying drift is not observable in the provided evidence.",
+  "root_cause_evidence_ids": [],
+  "accepted_keywords": [],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-080000000001",
+    "00000000-0000-4000-8000-080000000002"
+  ],
+  "misleading_evidence_ids": []
+}

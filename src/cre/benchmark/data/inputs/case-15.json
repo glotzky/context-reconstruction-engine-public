@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "case_id": "case-15",
+  "scenario_version": 1,
+  "anchor": "2026-02-15T09:30:00Z",
+  "initial_evidence_ids": [
+    "00000000-0000-4000-8000-150000000006"
+  ],
+  "evidence": [
+    {
+      "id": "00000000-0000-4000-8000-150000000001",
+      "kind": "commit",
+      "timestamp": "2026-02-15T09:19:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "01"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "sha": "1501c0ffee1501abcdef",
+        "message": "Invalidate cache before writing profile",
+        "author": "Fake Developer",
+        "files": [
+          "src/profile_cache.py"
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-150000000002",
+      "kind": "deployment",
+      "timestamp": "2026-02-15T09:20:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "02"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "deployment_version": "0.7.0",
+      "observed": {
+        "version": "0.7.0",
+        "status": "succeeded",
+        "environment": "lab",
+        "actor": "fake-deployer",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-150000000003",
+      "kind": "span",
+      "timestamp": "2026-02-15T09:29:59.800000Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "03"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "1501a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "1503b7ad6b716920",
+      "observed": {
+        "name": "cache.invalidate profile:42",
+        "start_time": "2026-02-15T09:29:59.799000+00:00",
+        "end_time": "2026-02-15T09:29:59.800000+00:00",
+        "span_kind": "INTERNAL",
+        "status_code": "OK",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-150000000004",
+      "kind": "span",
+      "timestamp": "2026-02-15T09:29:59.900000Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "04"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "1502a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "1504b7ad6b716920",
+      "observed": {
+        "name": "cache.fill profile:42",
+        "start_time": "2026-02-15T09:29:59.899000+00:00",
+        "end_time": "2026-02-15T09:29:59.900000+00:00",
+        "span_kind": "INTERNAL",
+        "status_code": "OK",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-150000000005",
+      "kind": "span",
+      "timestamp": "2026-02-15T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "05"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "1501a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "1505b7ad6b716920",
+      "observed": {
+        "name": "db.update profile:42",
+        "start_time": "2026-02-15T09:29:59.950000+00:00",
+        "end_time": "2026-02-15T09:30:00+00:00",
+        "span_kind": "CLIENT",
+        "status_code": "OK",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-150000000006",
+      "kind": "log",
+      "timestamp": "2026-02-15T09:30:01Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "06"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "1503a1b2c3d4e5f60718293a4b5c6d7e",
+      "observed": {
+        "level": "ERROR",
+        "message": "stale_read_detected: profile 42 version 6 expected 7",
+        "logger": "app",
+        "attributes": {}
+      }
+    }
+  ]
+}

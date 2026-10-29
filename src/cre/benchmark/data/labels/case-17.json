@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "case_id": "case-17",
+  "category": "missing_telemetry",
+  "answerable": true,
+  "root_cause_id": "rc-17-dark-dependency",
+  "root_cause_summary": "The dependency fails while its own spans are no longer emitted.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-170000000001",
+    "00000000-0000-4000-8000-170000000003"
+  ],
+  "accepted_keywords": [
+    "exporter"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-170000000001",
+    "00000000-0000-4000-8000-170000000002",
+    "00000000-0000-4000-8000-170000000003"
+  ],
+  "misleading_evidence_ids": []
+}

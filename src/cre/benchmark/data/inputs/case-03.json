@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "case_id": "case-03",
+  "scenario_version": 1,
+  "anchor": "2026-02-03T09:30:00Z",
+  "initial_evidence_ids": [
+    "00000000-0000-4000-8000-030000000003"
+  ],
+  "evidence": [
+    {
+      "id": "00000000-0000-4000-8000-030000000001",
+      "kind": "commit",
+      "timestamp": "2026-02-03T09:17:00Z",
+      "service": "fake-orders-producer",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "01"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "sha": "0301c0ffee0301abcdef",
+        "message": "Add PARTIALLY_REFUNDED to order status values",
+        "author": "Fake Developer",
+        "files": [
+          "schemas/order_status.json"
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-030000000002",
+      "kind": "deployment",
+      "timestamp": "2026-02-03T09:18:00Z",
+      "service": "fake-orders-producer",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "02"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "deployment_version": "3.1.0",
+      "observed": {
+        "version": "3.1.0",
+        "status": "succeeded",
+        "environment": "lab",
+        "actor": "fake-deployer",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-030000000003",
+      "kind": "log",
+      "timestamp": "2026-02-03T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "03"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "0301a1b2c3d4e5f60718293a4b5c6d7e",
+      "observed": {
+        "level": "ERROR",
+        "message": "event_decode_failed: unknown value 'PARTIALLY_REFUNDED' for field status",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-030000000004",
+      "kind": "log",
+      "timestamp": "2026-02-03T09:30:05Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "04"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "0302a1b2c3d4e5f60718293a4b5c6d7e",
+      "observed": {
+        "level": "ERROR",
+        "message": "event_decode_failed: unknown value 'PARTIALLY_REFUNDED' for field status",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-030000000005",
+      "kind": "span",
+      "timestamp": "2026-02-03T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "05"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "0301a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "0305b7ad6b716920",
+      "observed": {
+        "name": "consume order-events",
+        "start_time": "2026-02-03T09:29:59.950000+00:00",
+        "end_time": "2026-02-03T09:30:00+00:00",
+        "span_kind": "CONSUMER",
+        "status_code": "ERROR",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-030000000006",
+      "kind": "log",
+      "timestamp": "2026-02-03T09:28:20Z",
+      "service": "fake-orders-producer",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "06"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "published order event",
+        "logger": "app",
+        "attributes": {}
+      }
+    }
+  ]
+}

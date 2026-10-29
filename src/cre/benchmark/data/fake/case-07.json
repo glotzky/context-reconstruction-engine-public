@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "case_id": "case-07",
+  "engine": [
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Upstream calls time out",
+          "explanation": "Requests to an upstream dependency exceed their timeout.",
+          "claims": [
+            {
+              "text": "The failure is visible in the error evidence.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-070000000003"
+              ],
+              "status": "verified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-070000000003"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "medium",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    },
+    {
+      "action": "call_tools",
+      "tool_calls": [
+        {
+          "tool": "fetch_by_service_window",
+          "arguments": {
+            "service": "cre-lab-api",
+            "window_before_seconds": 900
+          }
+        }
+      ],
+      "reason": "look for related changes"
+    },
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Replica api-2 runs a different config_revision than api-1",
+          "explanation": "Both replicas run 0.4.0 but api-2 uses config r41; errors only come from api-2.",
+          "claims": [
+            {
+              "text": "The cited evidence is consistent with this explanation.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-070000000001",
+                "00000000-0000-4000-8000-070000000002",
+                "00000000-0000-4000-8000-070000000003"
+              ],
+              "status": "verified"
+            },
+            {
+              "text": "The exact mechanism was not directly observed.",
+              "evidence_ids": [],
+              "status": "unverified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-070000000001",
+            "00000000-0000-4000-8000-070000000002",
+            "00000000-0000-4000-8000-070000000003"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "low",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        },
+        {
+          "rank": 2,
+          "title": "Upstream calls time out",
+          "explanation": "Requests to an upstream dependency exceed their timeout.",
+          "claims": [
+            {
+              "text": "The error evidence shows the symptom only.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-070000000003"
+              ],
+              "status": "verified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-070000000003"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "high",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    },
+    {
+      "action": "conclude",
+      "tool_calls": [],
+      "reason": "evidence reviewed"
+    }
+  ],
+  "baseline": [
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Upstream calls time out from one replica",
+          "explanation": "Errors are only logged by api-2.",
+          "claims": [
+            {
+              "text": "The windowed evidence shows this.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-070000000003",
+                "00000000-0000-4000-8000-070000000004"
+              ],
+              "status": "verified"
+            },
+            {
+              "text": "No earlier changes were considered.",
+              "evidence_ids": [],
+              "status": "unverified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-070000000003",
+            "00000000-0000-4000-8000-070000000004"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "medium",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    }
+  ]
+}

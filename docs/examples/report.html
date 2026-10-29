@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Investigation report</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 70rem; margin: 1.5rem auto; padding: 0 1rem; line-height: 1.4; color: #1a1a1a; }
+section { border-top: 1px solid #ccc; margin-top: 1.5rem; padding-top: 0.5rem; }
+table { border-collapse: collapse; } td, th { border: 1px solid #ddd; padding: 0.2rem 0.5rem; text-align: left; vertical-align: top; }
+pre { background: #f5f5f5; padding: 0.75rem; overflow-x: auto; white-space: pre-wrap; }
+.badge { display: inline-block; font-size: 0.75rem; font-weight: bold; padding: 0 0.4rem; border-radius: 0.2rem; background: #b00020; color: #fff; }
+.lead { background: #8a6d00; }
+.evidence-unavailable { color: #b00020; font-style: italic; }
+.claim-unverified { background: #fff4f4; }
+.muted { color: #666; }
+</style>
+</head>
+<body>
+
+<h1>Investigation report</h1>
+<p class="muted">Job 00000000-0000-4000-8000-00000000de01 · created 2026-01-01T00:10:00+00:00 · updated 2026-01-01T00:11:00+00:00</p>
+
+<p>Status: <strong>completed</strong> · stop reason: <code>concluded</code></p>
+
+<section id="observed-facts">
+<h2>Observed facts (timeline)</h2>
+
+<ol>
+
+<li><time>2026-02-01T09:18:00+00:00</time> · <code>code_commit</code> · cre-lab-api — commit 0101c0ffee01: Rename customer_name column<br>
+<span class="muted">entry 00000000-0000-4000-8000-010000000001 · evidence:</span> <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000001.html">commit · 2026-02-01T09:18:00Z</a></li>
+
+<li><time>2026-02-01T09:20:00+00:00</time> · <code>deployment</code> · cre-lab-api — deployment 0.2.0 succeeded<br>
+<span class="muted">entry 00000000-0000-4000-8000-010000000002 · evidence:</span> <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000002.html">deployment · 2026-02-01T09:20:00Z</a></li>
+
+<li><time>2026-02-01T09:28:00+00:00</time> · <code>runtime_event</code> · cre-lab-api — INFO: request served<br>
+<span class="muted">entry 00000000-0000-4000-8000-010000000005 · evidence:</span> <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000005.html">log · 2026-02-01T09:28:00Z</a></li>
+
+<li><time>2026-02-01T09:30:00+00:00</time> · <code>runtime_symptom</code> · cre-lab-api — ERROR: order_lookup_failed: (psycopg.errors.UndefinedColumn) column &#34;customer_name&#34; does not exist<br>
+<span class="muted">entry 00000000-0000-4000-8000-010000000003 · evidence:</span> <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000003.html">log · 2026-02-01T09:30:00Z</a></li>
+
+<li><time>2026-02-01T09:30:00+00:00</time> · <code>runtime_symptom</code> · cre-lab-api — span GET /orders/{order_id} status ERROR<br>
+<span class="muted">entry 00000000-0000-4000-8000-010000000004 · evidence:</span> <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000004.html">span · 2026-02-01T09:30:00Z</a></li>
+
+</ol>
+
+</section>
+
+<section id="inferred-relationships">
+<h2>Inferred relationships</h2>
+
+<ul>
+
+<li><span class="badge lead">Lead (timing only), not causation</span> 00000000-0000-4000-8000-010000000001 → 00000000-0000-4000-8000-010000000003: Occurred 720 s after; timing only. This is a lead to check, not evidence of causation.</li>
+
+<li><span class="badge lead">Lead (timing only), not causation</span> 00000000-0000-4000-8000-010000000001 → 00000000-0000-4000-8000-010000000004: Occurred 720 s after; timing only. This is a lead to check, not evidence of causation.</li>
+
+<li><span class="badge lead">Lead (timing only), not causation</span> 00000000-0000-4000-8000-010000000002 → 00000000-0000-4000-8000-010000000003: Occurred 600 s after; timing only. This is a lead to check, not evidence of causation.</li>
+
+<li><span class="badge lead">Lead (timing only), not causation</span> 00000000-0000-4000-8000-010000000002 → 00000000-0000-4000-8000-010000000004: Occurred 600 s after; timing only. This is a lead to check, not evidence of causation.</li>
+
+<li><span class="muted">shared trace_id</span> 00000000-0000-4000-8000-010000000003 → 00000000-0000-4000-8000-010000000004: Linked by shared trace_id. This is a correlation, not a determination of cause.</li>
+
+</ul>
+
+</section>
+
+<section id="hypotheses">
+<h2>Hypotheses</h2>
+
+
+<article class="hypothesis">
+<h3>#1 Migration renaming customer_name was deployed before the query failures</h3>
+<p>A commit renamed the column and release 0.2.0 shipped it; the old query then fails. The order is a lead and the cited evidence ties the rename to the error.</p>
+<h4>Claims</h4>
+<ul>
+
+
+<li class="claim claim-verified">The cited evidence is consistent with this explanation. — <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000001.html">commit · 2026-02-01T09:18:00Z</a>, <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000002.html">deployment · 2026-02-01T09:20:00Z</a>, <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000003.html">log · 2026-02-01T09:30:00Z</a></li>
+
+
+
+<li class="claim claim-unverified"><span class="badge">UNVERIFIED</span> The exact mechanism was not directly observed.</li>
+
+
+</ul>
+<p>Supporting evidence: <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000001.html">commit · 2026-02-01T09:18:00Z</a>, <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000002.html">deployment · 2026-02-01T09:20:00Z</a>, <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000003.html">log · 2026-02-01T09:30:00Z</a></p>
+<p>Contradicting evidence: none</p>
+</article>
+
+<article class="hypothesis">
+<h3>#2 Query references a column missing from the database</h3>
+<p>The order lookup query fails because the column is not present.</p>
+<h4>Claims</h4>
+<ul>
+
+
+<li class="claim claim-verified">The error evidence shows the symptom only. — <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000003.html">log · 2026-02-01T09:30:00Z</a></li>
+
+
+</ul>
+<p>Supporting evidence: <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000003.html">log · 2026-02-01T09:30:00Z</a></p>
+<p>Contradicting evidence: none</p>
+</article>
+
+
+</section>
+
+<section id="uncertainty">
+<h2>Uncertainty</h2>
+
+<ul>
+
+<li>#1 Migration renaming customer_name was deployed before the query failures: <strong>low</strong> — Confidence would change with more change and trace evidence.</li>
+
+<li>#2 Query references a column missing from the database: <strong>high</strong> — Confidence would change with more change and trace evidence.</li>
+
+</ul>
+
+</section>
+
+<section id="unknowns">
+<h2>Unknowns, gaps and missing context</h2>
+<h3>Open questions</h3>
+<ul><li>No direct confirmation of the mechanism was retrieved.</li></ul>
+<h3>Timeline gaps and ambiguities</h3>
+<ul><li><code>ambiguous_correlation</code> (ambiguity): The symptom has no explicit relationship to any change but timing leads to 2 changes; which one, if any, is relevant is unknown.</li><li><code>ambiguous_correlation</code> (ambiguity): The symptom has no explicit relationship to any change but timing leads to 2 changes; which one, if any, is relevant is unknown.</li><li><code>equal_timestamps</code> (ambiguity): 2 entries share the same timestamp; their relative order cannot be determined. Listed order is a stable tie-break only.</li></ul>
+<h3>Missing context</h3>
+<p>All referenced evidence was loaded.</p>
+<h3>Repairs to model output</h3>
+<p>None.</p>
+</section>
+
+<section id="next-steps">
+<h2>Next diagnostic steps</h2>
+<ol><li>changes for the affected services in the incident window</li></ol>
+</section>
+
+<section id="provenance">
+<h2>Provenance</h2>
+<table>
+<tr><th>Provider</th><td>fake</td></tr>
+<tr><th>Model</th><td>fake-model</td></tr>
+<tr><th>Prompt version</th><td>investigation-v1</td></tr>
+<tr><th>Stop reason</th><td>concluded</td></tr>
+
+
+</table>
+<h3>Tool calls</h3>
+
+<table>
+<tr><th>Iteration</th><th>Tool</th><th>Status</th><th>Retrieval method</th><th>Arguments</th><th>Count</th><th>Evidence returned</th></tr>
+
+<tr><td>1</td><td>fetch_by_service_window</td><td>executed</td><td>tool:fetch_by_service_window</td><td><code>{&#34;limit&#34;: null, &#34;service&#34;: &#34;cre-lab-api&#34;, &#34;window_after_seconds&#34;: null, &#34;window_before_seconds&#34;: 900}</code></td><td>5</td><td><a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000001.html">commit · 2026-02-01T09:18:00Z</a>, <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000002.html">deployment · 2026-02-01T09:20:00Z</a>, <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000005.html">log · 2026-02-01T09:28:00Z</a>, <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000003.html">log · 2026-02-01T09:30:00Z</a>, <a class="evidence-link" href="evidence-00000000-0000-4000-8000-010000000004.html">span · 2026-02-01T09:30:00Z</a></td></tr>
+
+</table>
+
+</section>
+
+
+</body>
+</html>

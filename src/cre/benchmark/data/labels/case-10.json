@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "case_id": "case-10",
+  "category": "downstream_failure",
+  "answerable": true,
+  "root_cause_id": "rc-10-dependency-slowdown",
+  "root_cause_summary": "The inventory dependency became slower than the caller's read deadline.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-100000000004",
+    "00000000-0000-4000-8000-100000000005"
+  ],
+  "accepted_keywords": [
+    "latency",
+    "slow"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-100000000002",
+    "00000000-0000-4000-8000-100000000004",
+    "00000000-0000-4000-8000-100000000005"
+  ],
+  "misleading_evidence_ids": []
+}

@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "case_id": "case-14",
+  "scenario_version": 1,
+  "anchor": "2026-02-14T09:30:00Z",
+  "initial_evidence_ids": [
+    "00000000-0000-4000-8000-140000000004"
+  ],
+  "evidence": [
+    {
+      "id": "00000000-0000-4000-8000-140000000001",
+      "kind": "config_change",
+      "timestamp": "2026-02-14T09:17:00Z",
+      "service": "fake-orders-worker",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "01"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "key": "worker.lease_seconds",
+        "old_value": "300",
+        "new_value": "5",
+        "changed_by": "fake-operator"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-140000000002",
+      "kind": "log",
+      "timestamp": "2026-02-14T09:29:57Z",
+      "service": "fake-orders-worker",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "02"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "job 4411 claimed",
+        "logger": "app",
+        "attributes": {
+          "worker": "w-1"
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-140000000003",
+      "kind": "log",
+      "timestamp": "2026-02-14T09:30:00Z",
+      "service": "fake-orders-worker",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "03"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "job 4411 claimed",
+        "logger": "app",
+        "attributes": {
+          "worker": "w-2"
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-140000000004",
+      "kind": "log",
+      "timestamp": "2026-02-14T09:30:01Z",
+      "service": "fake-orders-worker",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "04"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "ERROR",
+        "message": "job 4411 failed: invoice already issued",
+        "logger": "app",
+        "attributes": {
+          "worker": "w-1"
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-140000000005",
+      "kind": "log",
+      "timestamp": "2026-02-14T09:29:58Z",
+      "service": "fake-orders-worker",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "05"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "WARN",
+        "message": "job 4411 lease expired",
+        "logger": "app",
+        "attributes": {
+          "worker": "w-1"
+        }
+      }
+    }
+  ]
+}

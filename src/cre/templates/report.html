@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% macro ref_list(refs) -%}
+{% for ref in refs %}{% if ref.resolved %}<a class="evidence-link" href="{{ evidence_href(ref.id) }}">{{ ref.label }}</a>{% else %}<span class="evidence-unavailable">evidence unavailable ({{ ref.id }})</span>{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+{%- endmacro %}
+{% block title %}Investigation report{% endblock %}
+{% block content %}
+<h1>Investigation report</h1>
+<p class="muted">Job {{ view.job_id }} · created {{ view.created_at.isoformat() }} · updated {{ view.updated_at.isoformat() }}</p>
+{% if not view.complete %}
+<section id="status">
+<h2>Status</h2>
+<p>Status: <strong>{{ view.status }}</strong></p>
+<p>Attempts: {{ view.attempts }}</p>
+{% if view.status == "failed" and view.error %}<p>Error code: <code>{{ view.error }}</code></p>{% endif %}
+{% if view.status == "completed" %}<p>The investigation result could not be read; no report is available.</p>
+{% else %}<p>The investigation has not completed; no report is available yet.</p>{% endif %}
+</section>
+{% else %}
+<p>Status: <strong>{{ view.status }}</strong> · stop reason: <code>{{ view.stop_reason }}</code></p>
+
+<section id="observed-facts">
+<h2>Observed facts (timeline)</h2>
+{% if view.observed %}
+<ol>
+{% for item in view.observed %}
+<li><time>{{ item.entry.occurred_at.isoformat() }}</time> · <code>{{ item.entry.entry_type }}</code>{% if item.entry.service %} · {{ item.entry.service }}{% endif %} — {{ item.entry.summary }}<br>
+<span class="muted">entry {{ item.entry.entry_id }} · evidence:</span> {{ ref_list(item.evidence) }}</li>
+{% endfor %}
+</ol>
+{% else %}<p>No evidence could be loaded for this investigation.</p>{% endif %}
+</section>
+
+<section id="inferred-relationships">
+<h2>Inferred relationships</h2>
+{% if view.relationships %}
+<ul>
+{% for rel in view.relationships %}
+<li>{% if rel.is_lead %}<span class="badge lead">Lead (timing only), not causation</span> {% else %}<span class="muted">shared {{ rel.identifiers | join(", ") }}</span> {% endif %}{{ rel.from_entry_id }} → {{ rel.to_entry_id }}: {{ rel.statement }}</li>
+{% endfor %}
+</ul>
+{% else %}<p>No relationships inferred.</p>{% endif %}
+</section>
+
+<section id="hypotheses">
+<h2>Hypotheses</h2>
+{% if view.hypotheses %}
+{% for h in view.hypotheses %}
+<article class="hypothesis">
+<h3>#{{ h.rank }} {{ h.title }}</h3>
+<p>{{ h.explanation }}</p>
+<h4>Claims</h4>
+<ul>
+{% for claim in h.claims %}
+{% if claim.status == "unverified" %}
+<li class="claim claim-unverified"><span class="badge">UNVERIFIED</span> {{ claim.text }}</li>
+{% else %}
+<li class="claim claim-verified">{{ claim.text }} — {{ ref_list(claim.evidence) }}</li>
+{% endif %}
+{% else %}<li>No claims.</li>
+{% endfor %}
+</ul>
+<p>Supporting evidence: {% if h.supporting %}{{ ref_list(h.supporting) }}{% else %}none{% endif %}</p>
+<p>Contradicting evidence: {% if h.contradicting %}{{ ref_list(h.contradicting) }}{% else %}none{% endif %}</p>
+</article>
+{% endfor %}
+{% else %}
+<p>No hypotheses produced (stop reason: <code>{{ view.stop_reason }}</code>{% if view.error_detail %}, {{ view.error_detail }}{% endif %}).</p>
+{% endif %}
+</section>
+
+<section id="uncertainty">
+<h2>Uncertainty</h2>
+{% if view.hypotheses %}
+<ul>
+{% for h in view.hypotheses %}
+<li>#{{ h.rank }} {{ h.title }}: <strong>{{ h.uncertainty }}</strong>{% if h.uncertainty_notes %} — {{ h.uncertainty_notes }}{% endif %}</li>
+{% endfor %}
+</ul>
+{% else %}<p>No hypotheses, so no uncertainty assessment.</p>{% endif %}
+</section>
+
+<section id="unknowns">
+<h2>Unknowns, gaps and missing context</h2>
+<h3>Open questions</h3>
+{% if view.unknowns %}<ul>{% for u in view.unknowns %}<li>{{ u }}</li>{% endfor %}</ul>{% else %}<p>None recorded.</p>{% endif %}
+<h3>Timeline gaps and ambiguities</h3>
+{% if view.timeline_gaps %}<ul>{% for g in view.timeline_gaps %}<li><code>{{ g.kind }}</code> ({{ g.category }}): {{ g.description }}</li>{% endfor %}</ul>{% else %}<p>None recorded.</p>{% endif %}
+<h3>Missing context</h3>
+{% if view.missing_evidence_ids %}<ul>{% for i in view.missing_evidence_ids %}<li class="missing-evidence">Evidence {{ i }} is referenced by the result but could not be loaded.</li>{% endfor %}</ul>{% else %}<p>All referenced evidence was loaded.</p>{% endif %}
+<h3>Repairs to model output</h3>
+{% if view.repairs %}<ul>{% for r in view.repairs %}<li><code>{{ r.kind }}</code> in “{{ r.hypothesis_title }}”: {{ r.detail }}</li>{% endfor %}</ul>{% else %}<p>None.</p>{% endif %}
+</section>
+
+<section id="next-steps">
+<h2>Next diagnostic steps</h2>
+{% if view.next_steps %}<ol>{% for step in view.next_steps %}<li>{{ step }}</li>{% endfor %}</ol>{% else %}<p>None suggested.</p>{% endif %}
+</section>
+
+<section id="provenance">
+<h2>Provenance</h2>
+<table>
+<tr><th>Provider</th><td>{{ view.provider }}</td></tr>
+<tr><th>Model</th><td>{{ view.model }}</td></tr>
+<tr><th>Prompt version</th><td>{{ view.prompt_version }}</td></tr>
+<tr><th>Stop reason</th><td>{{ view.stop_reason }}</td></tr>
+{% if view.budget_exhausted %}<tr><th>Budget exhausted</th><td>{{ view.budget_exhausted }}</td></tr>{% endif %}
+{% if view.error_detail %}<tr><th>Error detail</th><td>{{ view.error_detail }}</td></tr>{% endif %}
+</table>
+<h3>Tool calls</h3>
+{% if view.tool_calls %}
+<table>
+<tr><th>Iteration</th><th>Tool</th><th>Status</th><th>Retrieval method</th><th>Arguments</th><th>Count</th><th>Evidence returned</th></tr>
+{% for call in view.tool_calls %}
+<tr><td>{{ call.iteration }}</td><td>{{ call.tool }}</td><td>{{ call.status }}</td><td>{{ call.retrieval_method }}</td><td><code>{{ call.arguments | json_text }}</code></td><td>{{ call.count }}{% if call.truncated %} (truncated){% endif %}</td><td>{% if call.evidence %}{{ ref_list(call.evidence) }}{% else %}none{% endif %}</td></tr>
+{% endfor %}
+</table>
+{% else %}<p>No tool calls were made.</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

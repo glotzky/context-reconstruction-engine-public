@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "case_id": "case-09",
+  "category": "downstream_failure",
+  "answerable": true,
+  "root_cause_id": "rc-09-dependency-unavailable",
+  "root_cause_summary": "The payment dependency is unavailable and answers every call with a server error.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-090000000003",
+    "00000000-0000-4000-8000-090000000004"
+  ],
+  "accepted_keywords": [
+    "503",
+    "unavailable"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-090000000002",
+    "00000000-0000-4000-8000-090000000003",
+    "00000000-0000-4000-8000-090000000004"
+  ],
+  "misleading_evidence_ids": []
+}

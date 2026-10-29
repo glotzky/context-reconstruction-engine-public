@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "case_id": "case-18",
+  "category": "missing_telemetry",
+  "answerable": true,
+  "root_cause_id": "rc-18-silent-dependency",
+  "root_cause_summary": "The dependency fails internally and its logs are not shipped.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-180000000001",
+    "00000000-0000-4000-8000-180000000005"
+  ],
+  "accepted_keywords": [
+    "log_shipper",
+    "log shipper"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-180000000001",
+    "00000000-0000-4000-8000-180000000003",
+    "00000000-0000-4000-8000-180000000005"
+  ],
+  "misleading_evidence_ids": []
+}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Evidence {{ item.id }}{% endblock %}
+{% block content %}
+<p><a href="{{ report_href }}">← Back to the report</a></p>
+<h1>Evidence {{ item.id }}</h1>
+<section id="evidence-source">
+<h2>Source and provenance</h2>
+<table>
+<tr><th>Kind</th><td>{{ item.kind }}</td></tr>
+<tr><th>Timestamp</th><td>{{ item.timestamp.isoformat() }}</td></tr>
+<tr><th>Source type</th><td>{{ item.provenance.source.source_type }}</td></tr>
+<tr><th>Source name</th><td>{{ item.provenance.source.name }}</td></tr>
+<tr><th>Source URI</th><td>{{ item.provenance.source.uri or "—" }}</td></tr>
+<tr><th>Source locator</th><td>{{ item.provenance.source.locator or "—" }}</td></tr>
+<tr><th>Retrieval method</th><td>{{ item.provenance.retrieval_method }}</td></tr>
+<tr><th>Retrieved at</th><td>{{ item.provenance.retrieved_at.isoformat() }}</td></tr>
+</table>
+</section>
+<section id="evidence-identifiers">
+<h2>Identifiers</h2>
+<table>
+{% for key, value in item.provenance.identifiers | dictsort %}<tr><th>{{ key }}</th><td>{{ value }}</td></tr>
+{% endfor %}
+<tr><th>trace_id</th><td>{{ item.trace_id or "—" }}</td></tr>
+<tr><th>span_id</th><td>{{ item.span_id or "—" }}</td></tr>
+<tr><th>request_id</th><td>{{ item.request_id or "—" }}</td></tr>
+<tr><th>service</th><td>{{ item.service or "—" }}</td></tr>
+<tr><th>deployment_version</th><td>{{ item.deployment_version or "—" }}</td></tr>
+</table>
+</section>
+<section id="evidence-inferred">
+<h2>Inferred (not observed)</h2>
+{% if item.inferred %}<ul>{% for inf in item.inferred %}<li>{{ inf.statement }} <span class="muted">(method {{ inf.method }}; basis {{ inf.basis | join(", ") }})</span></li>{% endfor %}</ul>{% else %}<p>None.</p>{% endif %}
+</section>
+<section id="evidence-observed">
+<h2>Observed content (redacted)</h2>
+<pre>{{ content }}</pre>
+{% if truncated %}<p class="truncated-note">Content truncated to the first {{ max_chars }} characters.</p>{% endif %}
+</section>
+{% endblock %}

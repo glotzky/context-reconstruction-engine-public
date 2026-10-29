@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "case_id": "case-11",
+  "engine": [
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Partner quote calls fail",
+          "explanation": "Quote requests to the partner API fail.",
+          "claims": [
+            {
+              "text": "The failure is visible in the error evidence.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-110000000003"
+              ],
+              "status": "verified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-110000000003"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "medium",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    },
+    {
+      "action": "call_tools",
+      "tool_calls": [
+        {
+          "tool": "fetch_by_trace",
+          "arguments": {
+            "trace_id": "1101a1b2c3d4e5f60718293a4b5c6d7e",
+            "window_before_seconds": 900
+          }
+        },
+        {
+          "tool": "fetch_by_service_window",
+          "arguments": {
+            "service": "fake-partner-api",
+            "window_before_seconds": 900
+          }
+        }
+      ],
+      "reason": "look for related changes"
+    },
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Third-party rate limit lowered; calls now get 429",
+          "explanation": "The partner lowered its allowed requests per minute and responses are 429. Release 0.5.0 happened nearby but timing alone does not implicate it.",
+          "claims": [
+            {
+              "text": "The cited evidence is consistent with this explanation.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-110000000002",
+                "00000000-0000-4000-8000-110000000004",
+                "00000000-0000-4000-8000-110000000003"
+              ],
+              "status": "verified"
+            },
+            {
+              "text": "The exact mechanism was not directly observed.",
+              "evidence_ids": [],
+              "status": "unverified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-110000000002",
+            "00000000-0000-4000-8000-110000000004",
+            "00000000-0000-4000-8000-110000000003"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "low",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        },
+        {
+          "rank": 2,
+          "title": "Partner quote calls fail",
+          "explanation": "Quote requests to the partner API fail.",
+          "claims": [
+            {
+              "text": "The error evidence shows the symptom only.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-110000000003"
+              ],
+              "status": "verified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-110000000003"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "high",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    },
+    {
+      "action": "conclude",
+      "tool_calls": [],
+      "reason": "evidence reviewed"
+    }
+  ],
+  "baseline": [
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Release 0.5.0 introduced a regression in partner calls",
+          "explanation": "The release happened shortly before the errors.",
+          "claims": [
+            {
+              "text": "The windowed evidence shows this.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-110000000001",
+                "00000000-0000-4000-8000-110000000003"
+              ],
+              "status": "verified"
+            },
+            {
+              "text": "No earlier changes were considered.",
+              "evidence_ids": [],
+              "status": "unverified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-110000000001",
+            "00000000-0000-4000-8000-110000000003"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "medium",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    }
+  ]
+}

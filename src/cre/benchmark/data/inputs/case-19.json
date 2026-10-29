@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "case_id": "case-19",
+  "scenario_version": 1,
+  "anchor": "2026-02-19T09:30:00Z",
+  "initial_evidence_ids": [
+    "00000000-0000-4000-8000-190000000001"
+  ],
+  "evidence": [
+    {
+      "id": "00000000-0000-4000-8000-190000000001",
+      "kind": "log",
+      "timestamp": "2026-02-19T09:30:00Z",
+      "service": "fake-notify",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "01"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "ERROR",
+        "message": "notification_send_failed",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-190000000002",
+      "kind": "log",
+      "timestamp": "2026-02-19T09:26:40Z",
+      "service": "fake-notify",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "02"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "notification queued",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-190000000003",
+      "kind": "log",
+      "timestamp": "2026-02-19T09:21:40Z",
+      "service": "fake-notify",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "03"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "notification queued",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-190000000004",
+      "kind": "log",
+      "timestamp": "2026-02-19T09:16:40Z",
+      "service": "fake-notify",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "04"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "service heartbeat",
+        "logger": "app",
+        "attributes": {}
+      }
+    }
+  ]
+}

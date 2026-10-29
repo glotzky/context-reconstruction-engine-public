@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "case_id": "case-06",
+  "engine": [
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Checkout handler raises KeyError",
+          "explanation": "Checkout requests fail with a missing shipping_quote field.",
+          "claims": [
+            {
+              "text": "The failure is visible in the error evidence.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-060000000002"
+              ],
+              "status": "verified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-060000000002"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "medium",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    },
+    {
+      "action": "call_tools",
+      "tool_calls": [
+        {
+          "tool": "fetch_by_service_window",
+          "arguments": {
+            "service": "cre-lab-api",
+            "window_before_seconds": 900
+          }
+        }
+      ],
+      "reason": "look for related changes"
+    },
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Feature flag new_checkout_flow enabled only in lab-eu",
+          "explanation": "The flag was turned on in lab-eu only, and only lab-eu requests fail on the new path.",
+          "claims": [
+            {
+              "text": "The cited evidence is consistent with this explanation.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-060000000001",
+                "00000000-0000-4000-8000-060000000002"
+              ],
+              "status": "verified"
+            },
+            {
+              "text": "The exact mechanism was not directly observed.",
+              "evidence_ids": [],
+              "status": "unverified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-060000000001",
+            "00000000-0000-4000-8000-060000000002"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "low",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        },
+        {
+          "rank": 2,
+          "title": "Checkout handler raises KeyError",
+          "explanation": "Checkout requests fail with a missing shipping_quote field.",
+          "claims": [
+            {
+              "text": "The error evidence shows the symptom only.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-060000000002"
+              ],
+              "status": "verified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-060000000002"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "high",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    },
+    {
+      "action": "conclude",
+      "tool_calls": [],
+      "reason": "evidence reviewed"
+    }
+  ],
+  "baseline": [
+    {
+      "hypotheses": [
+        {
+          "rank": 1,
+          "title": "Checkout handler raises KeyError on the new path",
+          "explanation": "Checkout requests fail with a missing shipping_quote field.",
+          "claims": [
+            {
+              "text": "The windowed evidence shows this.",
+              "evidence_ids": [
+                "00000000-0000-4000-8000-060000000002",
+                "00000000-0000-4000-8000-060000000005"
+              ],
+              "status": "verified"
+            },
+            {
+              "text": "No earlier changes were considered.",
+              "evidence_ids": [],
+              "status": "unverified"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "00000000-0000-4000-8000-060000000002",
+            "00000000-0000-4000-8000-060000000005"
+          ],
+          "contradicting_evidence_ids": [],
+          "uncertainty": "medium",
+          "uncertainty_notes": "Confidence would change with more change and trace evidence.",
+          "follow_up_queries": [
+            "changes for the affected services in the incident window"
+          ]
+        }
+      ],
+      "unknowns": [
+        "No direct confirmation of the mechanism was retrieved."
+      ]
+    }
+  ]
+}

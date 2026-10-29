@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "case_id": "case-13",
+  "scenario_version": 1,
+  "anchor": "2026-02-13T09:30:00Z",
+  "initial_evidence_ids": [
+    "00000000-0000-4000-8000-130000000005"
+  ],
+  "evidence": [
+    {
+      "id": "00000000-0000-4000-8000-130000000001",
+      "kind": "commit",
+      "timestamp": "2026-02-13T09:20:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "01"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "sha": "1301c0ffee1301abcdef",
+        "message": "Remove client-side submit debounce",
+        "author": "Fake Developer",
+        "files": [
+          "web/checkout.js"
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-130000000002",
+      "kind": "deployment",
+      "timestamp": "2026-02-13T09:20:40Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "02"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "deployment_version": "0.6.0",
+      "observed": {
+        "version": "0.6.0",
+        "status": "succeeded",
+        "environment": "lab",
+        "actor": "fake-deployer",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-130000000003",
+      "kind": "span",
+      "timestamp": "2026-02-13T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "03"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "1301a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "1303b7ad6b716920",
+      "request_id": "fake-req-77",
+      "observed": {
+        "name": "POST /orders",
+        "start_time": "2026-02-13T09:29:59.950000+00:00",
+        "end_time": "2026-02-13T09:30:00+00:00",
+        "span_kind": "SERVER",
+        "status_code": "OK",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-130000000004",
+      "kind": "span",
+      "timestamp": "2026-02-13T09:30:00.050000Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "04"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "1302a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "1304b7ad6b716920",
+      "request_id": "fake-req-77",
+      "observed": {
+        "name": "POST /orders",
+        "start_time": "2026-02-13T09:30:00+00:00",
+        "end_time": "2026-02-13T09:30:00.050000+00:00",
+        "span_kind": "SERVER",
+        "status_code": "ERROR",
+        "attributes": {},
+        "status_message": "UniqueViolation"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-130000000005",
+      "kind": "log",
+      "timestamp": "2026-02-13T09:30:00.050000Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "05"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "1302a1b2c3d4e5f60718293a4b5c6d7e",
+      "request_id": "fake-req-77",
+      "observed": {
+        "level": "ERROR",
+        "message": "duplicate key value violates unique constraint \"orders_idempotency_uq\"",
+        "logger": "app",
+        "attributes": {}
+      }
+    }
+  ]
+}

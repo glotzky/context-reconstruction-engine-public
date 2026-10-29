@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "case_id": "case-16",
+  "scenario_version": 1,
+  "anchor": "2026-02-16T09:30:00Z",
+  "initial_evidence_ids": [
+    "00000000-0000-4000-8000-160000000001",
+    "00000000-0000-4000-8000-160000000002"
+  ],
+  "evidence": [
+    {
+      "id": "00000000-0000-4000-8000-160000000001",
+      "kind": "log",
+      "timestamp": "2026-02-16T09:30:00Z",
+      "service": "fake-orders-worker",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "01"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "ERROR",
+        "message": "ledger_update_failed: version conflict on account 9",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-160000000002",
+      "kind": "log",
+      "timestamp": "2026-02-16T09:30:00.010000Z",
+      "service": "fake-orders-worker",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "02"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "ERROR",
+        "message": "ledger_update_failed: version conflict on account 9",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-160000000003",
+      "kind": "log",
+      "timestamp": "2026-02-16T09:25:00Z",
+      "service": "fake-orders-worker",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "03"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "worker started",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-160000000004",
+      "kind": "log",
+      "timestamp": "2026-02-16T09:20:00Z",
+      "service": "fake-orders-worker",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "04"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "worker heartbeat",
+        "logger": "app",
+        "attributes": {}
+      }
+    }
+  ]
+}

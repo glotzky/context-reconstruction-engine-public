@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "case_id": "case-06",
+  "category": "configuration_drift",
+  "answerable": true,
+  "root_cause_id": "rc-06-single-env-toggle",
+  "root_cause_summary": "A toggle was switched on in one environment, exposing an unfinished code path there.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-060000000001"
+  ],
+  "accepted_keywords": [
+    "flag"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-060000000001",
+    "00000000-0000-4000-8000-060000000002",
+    "00000000-0000-4000-8000-060000000004"
+  ],
+  "misleading_evidence_ids": []
+}

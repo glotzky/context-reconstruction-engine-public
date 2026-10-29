@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "case_id": "case-06",
+  "scenario_version": 1,
+  "anchor": "2026-02-06T09:30:00Z",
+  "initial_evidence_ids": [
+    "00000000-0000-4000-8000-060000000002"
+  ],
+  "evidence": [
+    {
+      "id": "00000000-0000-4000-8000-060000000001",
+      "kind": "config_change",
+      "timestamp": "2026-02-06T09:22:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "01"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "key": "feature.new_checkout_flow[env=lab-eu]",
+        "old_value": "false",
+        "new_value": "true",
+        "changed_by": "fake-operator"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-060000000002",
+      "kind": "log",
+      "timestamp": "2026-02-06T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "02"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "0601a1b2c3d4e5f60718293a4b5c6d7e",
+      "observed": {
+        "level": "ERROR",
+        "message": "checkout_failed: KeyError 'shipping_quote' in new_checkout_flow",
+        "logger": "app",
+        "attributes": {
+          "environment": "lab-eu"
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-060000000003",
+      "kind": "log",
+      "timestamp": "2026-02-06T09:30:10Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "03"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "0602a1b2c3d4e5f60718293a4b5c6d7e",
+      "observed": {
+        "level": "ERROR",
+        "message": "checkout_failed: KeyError 'shipping_quote' in new_checkout_flow",
+        "logger": "app",
+        "attributes": {
+          "environment": "lab-eu"
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-060000000004",
+      "kind": "log",
+      "timestamp": "2026-02-06T09:29:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "04"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "checkout completed",
+        "logger": "app",
+        "attributes": {
+          "environment": "lab-us"
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-060000000005",
+      "kind": "span",
+      "timestamp": "2026-02-06T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "05"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "0601a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "0605b7ad6b716920",
+      "observed": {
+        "name": "POST /checkout",
+        "start_time": "2026-02-06T09:29:59.950000+00:00",
+        "end_time": "2026-02-06T09:30:00+00:00",
+        "span_kind": "SERVER",
+        "status_code": "ERROR",
+        "attributes": {},
+        "status_message": "KeyError"
+      }
+    }
+  ]
+}

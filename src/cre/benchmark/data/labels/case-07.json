@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "case_id": "case-07",
+  "category": "configuration_drift",
+  "answerable": true,
+  "root_cause_id": "rc-07-divergent-revision",
+  "root_cause_summary": "One instance was rolled out with a different settings revision than its peers.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-070000000001"
+  ],
+  "accepted_keywords": [
+    "config_revision",
+    "replica"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-070000000001",
+    "00000000-0000-4000-8000-070000000002",
+    "00000000-0000-4000-8000-070000000003"
+  ],
+  "misleading_evidence_ids": []
+}

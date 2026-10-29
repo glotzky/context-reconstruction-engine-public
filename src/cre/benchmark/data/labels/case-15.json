@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "case_id": "case-15",
+  "category": "race_condition",
+  "answerable": true,
+  "root_cause_id": "rc-15-ordering-bug",
+  "root_cause_summary": "The write path clears the cached entry before the database write commits.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-150000000001",
+    "00000000-0000-4000-8000-150000000003",
+    "00000000-0000-4000-8000-150000000004"
+  ],
+  "accepted_keywords": [
+    "invalidat",
+    "race"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-150000000003",
+    "00000000-0000-4000-8000-150000000004",
+    "00000000-0000-4000-8000-150000000005",
+    "00000000-0000-4000-8000-150000000006"
+  ],
+  "misleading_evidence_ids": []
+}

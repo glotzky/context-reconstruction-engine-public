@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "case_id": "case-01",
+  "category": "schema_incompatibility",
+  "answerable": true,
+  "root_cause_id": "rc-01-column-rename",
+  "root_cause_summary": "A migration renamed the customer_name column and the deployed query still uses the old name.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-010000000001",
+    "00000000-0000-4000-8000-010000000002"
+  ],
+  "accepted_keywords": [
+    "migration",
+    "rename"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-010000000001",
+    "00000000-0000-4000-8000-010000000002",
+    "00000000-0000-4000-8000-010000000003"
+  ],
+  "misleading_evidence_ids": []
+}

@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "case_id": "case-18",
+  "scenario_version": 1,
+  "anchor": "2026-02-18T09:30:00Z",
+  "initial_evidence_ids": [
+    "00000000-0000-4000-8000-180000000003"
+  ],
+  "evidence": [
+    {
+      "id": "00000000-0000-4000-8000-180000000001",
+      "kind": "config_change",
+      "timestamp": "2026-02-18T09:18:00Z",
+      "service": "fake-payments",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "01"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "key": "log_shipper.enabled",
+        "old_value": "true",
+        "new_value": "false",
+        "changed_by": "fake-operator"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-180000000002",
+      "kind": "log",
+      "timestamp": "2026-02-18T09:17:20Z",
+      "service": "fake-payments",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "02"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "observed": {
+        "level": "INFO",
+        "message": "request served",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-180000000003",
+      "kind": "log",
+      "timestamp": "2026-02-18T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "03"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "1801a1b2c3d4e5f60718293a4b5c6d7e",
+      "observed": {
+        "level": "ERROR",
+        "message": "payment_capture_failed: upstream returned 502",
+        "logger": "app",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-180000000004",
+      "kind": "span",
+      "timestamp": "2026-02-18T09:30:00Z",
+      "service": "cre-lab-api",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "04"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "1801a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "1804b7ad6b716920",
+      "observed": {
+        "name": "POST fake-payments /capture",
+        "start_time": "2026-02-18T09:29:59.950000+00:00",
+        "end_time": "2026-02-18T09:30:00+00:00",
+        "span_kind": "CLIENT",
+        "status_code": "ERROR",
+        "attributes": {
+          "http.status_code": 502
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-180000000005",
+      "kind": "span",
+      "timestamp": "2026-02-18T09:29:59.990000Z",
+      "service": "fake-payments",
+      "provenance": {
+        "source": {
+          "source_type": "benchmark_fixture",
+          "name": "benchmark fixture"
+        },
+        "retrieval_method": "fixture",
+        "identifiers": {
+          "fixture_item": "05"
+        },
+        "retrieved_at": "2026-03-01T00:00:00Z"
+      },
+      "trace_id": "1801a1b2c3d4e5f60718293a4b5c6d7e",
+      "span_id": "1805b7ad6b716920",
+      "observed": {
+        "name": "POST /capture",
+        "start_time": "2026-02-18T09:29:59.940000+00:00",
+        "end_time": "2026-02-18T09:29:59.990000+00:00",
+        "span_kind": "SERVER",
+        "status_code": "ERROR",
+        "attributes": {},
+        "parent_span_id": "1804b7ad6b716920",
+        "status_message": "internal error"
+      }
+    }
+  ]
+}

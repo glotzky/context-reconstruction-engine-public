@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "case_id": "case-20",
+  "category": "missing_telemetry",
+  "tags": [
+    "misleading_change"
+  ],
+  "answerable": true,
+  "root_cause_id": "rc-20-slow-dependency",
+  "root_cause_summary": "The inventory dependency exceeds the caller's deadline.",
+  "root_cause_evidence_ids": [
+    "00000000-0000-4000-8000-200000000004",
+    "00000000-0000-4000-8000-200000000005"
+  ],
+  "accepted_keywords": [
+    "fake-inventory",
+    "slower"
+  ],
+  "required_evidence_ids": [
+    "00000000-0000-4000-8000-200000000003",
+    "00000000-0000-4000-8000-200000000004",
+    "00000000-0000-4000-8000-200000000005"
+  ],
+  "misleading_evidence_ids": [
+    "00000000-0000-4000-8000-200000000001"
+  ]
+}
