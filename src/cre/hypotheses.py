@@ -7,12 +7,14 @@ output are never logged or echoed in error messages.
 """
 
 import re
+from collections.abc import Mapping
 from typing import Annotated, Literal, Self
 from uuid import UUID
 
 from pydantic import Field, ValidationError, model_validator
 
 from cre.bundle import EvidenceBundle
+from cre.claim_support import evidence_text, unsupported_reason
 from cre.evidence import NonEmptyStr, _Model
 from cre.llm import LLMProvider, LLMProviderError, LLMRequest
 from cre.prompts import HYPOTHESIS_SYSTEM_PROMPT
@@ -26,14 +28,81 @@ Uncertainty = Literal["low", "medium", "high"]
 RepairKind = Literal[
     "unknown_evidence_id_removed",
     "claim_downgraded",
+    "claim_unsupported",
     "conflicting_evidence_id_removed",
     "hypothesis_dropped_unsupported",
     "reranked",
 ]
 
 
+_SAFE_LOC = re.compile(r"^[a-z_]{1,40}$")
+_JSON_TAGS = (
+    ("eof while parsing", "eof"),
+    ("trailing characters", "trailing_text"),
+    ("expected value", "bad_value"),
+    ("key must be a string", "bad_key"),
+    ("control character", "control_char"),
+    ("invalid escape", "bad_escape"),
+    ("expected `,` or", "missing_comma"),
+    ("expected `:`", "missing_colon"),
+)
+_COLUMN = re.compile(r"column (\d+)")
+
+
+def _json_detail(message: str) -> str:
+    """Classify a pydantic JSON syntax error without keeping any of its text."""
+    low = message.casefold()
+    tag = next((t for needle, t in _JSON_TAGS if needle in low), "malformed")
+    column = _COLUMN.search(message)
+    if column is None:
+        return tag
+    if tag in ("malformed", "bad_value") and int(column.group(1)) <= 5:
+        tag = "not_json_start"  # prose or a stray character before the JSON begins
+    return f"{tag} at col {column.group(1)}"
+
+
+_CODE_MAX_ERRORS = 3
+
+
+def validation_code(exc: ValidationError, raw_chars: int) -> str:
+    """A short, content-free diagnosis of a schema failure.
+
+    Only pydantic's error types, our own schema field names and the output size appear. Extra
+    (model-chosen) keys, values and messages are never included.
+    """
+    seen: list[str] = []
+    for err in exc.errors(include_url=False, include_context=False, include_input=False):
+        kind = str(err["type"])
+        parts: list[str] = []
+        if kind != "extra_forbidden":
+            for element in err["loc"]:
+                if isinstance(element, int):
+                    parts.append("*")
+                elif isinstance(element, str) and _SAFE_LOC.match(element):
+                    parts.append(element)
+                else:
+                    break
+                if element == "arguments":
+                    break
+        key = kind + (f"@{'.'.join(parts)}" if parts else "")
+        if kind == "json_invalid":
+            key = f"{kind}[{_json_detail(str(err['msg']))}]"
+        if key not in seen:
+            seen.append(key)
+    shown = ", ".join(seen[:_CODE_MAX_ERRORS])
+    more = f" +{len(seen) - _CODE_MAX_ERRORS} more" if len(seen) > _CODE_MAX_ERRORS else ""
+    return f"{shown}{more}; {raw_chars // 1000}k chars"
+
+
 class HypothesisOutputError(ValueError):
-    """Model output was rejected. The message never contains the raw output."""
+    """Model output was rejected. The message never contains the raw output.
+
+    ``code`` is a short content-free diagnosis (see ``validation_code``), empty if unknown.
+    """
+
+    def __init__(self, message: str, code: str = "") -> None:
+        super().__init__(message)
+        self.code = code
 
 
 class RawClaim(_Model):
@@ -142,7 +211,10 @@ def _valid_ids(
 
 
 def _repair(
-    raw: RawHypothesis, allowed: frozenset[UUID], repairs: list[RepairNote]
+    raw: RawHypothesis,
+    allowed: frozenset[UUID],
+    repairs: list[RepairNote],
+    texts: Mapping[UUID, str],
 ) -> Hypothesis | None:
     title = raw.title
     supporting = _valid_ids(raw.supporting_evidence_ids, allowed, title, repairs)
@@ -169,6 +241,17 @@ def _repair(
                     detail="verified claim has no valid evidence IDs; marked unverified",
                 )
             )
+        if ids:
+            reason = unsupported_reason(claim.text, (texts[i] for i in ids))
+            if reason is not None:
+                repairs.append(
+                    RepairNote(
+                        kind="claim_unsupported",
+                        hypothesis_title=title,
+                        detail=f"{reason}; marked unverified and {len(ids)} citation(s) removed",
+                    )
+                )
+                ids = []
         claims.append(
             Claim(text=claim.text, evidence_ids=ids, status="verified" if ids else "unverified")
         )
@@ -199,23 +282,30 @@ def parse_and_validate(
 ) -> HypothesisResult:
     """Parse model output, check citations against the bundle and repair or reject it."""
     if len(raw) > MAX_OUTPUT_CHARS:
-        raise HypothesisOutputError("model output exceeds MAX_OUTPUT_CHARS")
+        raise HypothesisOutputError(
+            "model output exceeds MAX_OUTPUT_CHARS", f"output too long; {len(raw) // 1000}k chars"
+        )
     try:
         output = RawHypothesisOutput.model_validate_json(_strip_fence(raw))
     except ValidationError as exc:
         raise HypothesisOutputError(
-            f"model output failed schema validation ({exc.error_count()} errors)"
+            f"model output failed schema validation ({exc.error_count()} errors)",
+            validation_code(exc, len(raw)),
         ) from None
 
     allowed = bundle.evidence_ids
+    texts = {item.id: evidence_text(item) for item in bundle.evidence}
     repairs: list[RepairNote] = []
     kept: list[tuple[int, int, Hypothesis]] = []
     for index, raw_hypothesis in enumerate(output.hypotheses):
-        hypothesis = _repair(raw_hypothesis, allowed, repairs)
+        hypothesis = _repair(raw_hypothesis, allowed, repairs, texts)
         if hypothesis is not None:
             kept.append((hypothesis.rank, index, hypothesis))
     if not kept:
-        raise HypothesisOutputError("model output has no hypothesis with valid supporting evidence")
+        raise HypothesisOutputError(
+            "model output has no hypothesis with valid supporting evidence",
+            "no hypothesis with valid supporting evidence",
+        )
 
     kept.sort(key=lambda item: (item[0], item[1]))
     old_ranks = [rank for rank, _, _ in kept]

@@ -37,8 +37,8 @@ def test_render_user_prompt_wraps_once() -> None:
 
 
 def test_investigation_prompt_version() -> None:
-    assert INVESTIGATION_PROMPT_VERSION == "investigation-v1"
-    assert HYPOTHESIS_PROMPT_VERSION == "hypotheses-v1"
+    assert INVESTIGATION_PROMPT_VERSION == "investigation-v3"
+    assert HYPOTHESIS_PROMPT_VERSION == "hypotheses-v2"
 
 
 def test_tool_request_prompt_lists_tools_and_shape() -> None:
@@ -80,3 +80,13 @@ def test_render_investigation_prompt_with_new_ids() -> None:
     rendered = render_investigation_prompt("hyps", "BUNDLE", ids)
     assert f"NEW EVIDENCE IDS: {ids[0]}, {ids[1]}\n\n" in rendered
     assert rendered.index(DATA_END) < rendered.index("NEW EVIDENCE IDS") < rendered.index("BUNDLE")
+
+
+def test_prompts_ask_for_compact_replies_and_no_extra_keys() -> None:
+    from cre.prompts import REVISION_SYSTEM_PROMPT, TOOL_REQUEST_SYSTEM_PROMPT
+
+    for prompt in (HYPOTHESIS_SYSTEM_PROMPT, REVISION_SYSTEM_PROMPT):
+        assert "at most 3 hypotheses" in prompt
+        assert "explanation under 600 characters" in prompt
+        assert "at most 5 hypotheses" not in prompt
+    assert "do not add other keys" in TOOL_REQUEST_SYSTEM_PROMPT

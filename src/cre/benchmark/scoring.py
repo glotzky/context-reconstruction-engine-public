@@ -30,6 +30,8 @@ class CaseScore(_Model):
     approx_tokens: int
     cost_usd: float | None
     stop_reason: str
+    # Fixed, content-free label from the investigator (never prompts, evidence or model output).
+    error_detail: str | None = None
 
 
 class AbstentionSummary(_Model):
@@ -116,6 +118,7 @@ def score_case(
         approx_tokens=outcome.approx_tokens,
         cost_usd=cost_usd,
         stop_reason=outcome.stop_reason,
+        error_detail=outcome.error_detail,
     )
 
 

@@ -85,7 +85,7 @@
 <h3>Open questions</h3>
 {% if view.unknowns %}<ul>{% for u in view.unknowns %}<li>{{ u }}</li>{% endfor %}</ul>{% else %}<p>None recorded.</p>{% endif %}
 <h3>Timeline gaps and ambiguities</h3>
-{% if view.timeline_gaps %}<ul>{% for g in view.timeline_gaps %}<li><code>{{ g.kind }}</code> ({{ g.category }}): {{ g.description }}</li>{% endfor %}</ul>{% else %}<p>None recorded.</p>{% endif %}
+{% if view.timeline_gap_groups %}<ul>{% for g in view.timeline_gap_groups %}<li><code>{{ g.kind }}</code> ({{ g.category }}): {{ g.description }}{% if g.count > 1 %} <span class="count">(&times;{{ g.count }})</span>{% endif %}</li>{% endfor %}</ul>{% else %}<p>None recorded.</p>{% endif %}
 <h3>Missing context</h3>
 {% if view.missing_evidence_ids %}<ul>{% for i in view.missing_evidence_ids %}<li class="missing-evidence">Evidence {{ i }} is referenced by the result but could not be loaded.</li>{% endfor %}</ul>{% else %}<p>All referenced evidence was loaded.</p>{% endif %}
 <h3>Repairs to model output</h3>
@@ -112,7 +112,7 @@
 <table>
 <tr><th>Iteration</th><th>Tool</th><th>Status</th><th>Retrieval method</th><th>Arguments</th><th>Count</th><th>Evidence returned</th></tr>
 {% for call in view.tool_calls %}
-<tr><td>{{ call.iteration }}</td><td>{{ call.tool }}</td><td>{{ call.status }}</td><td>{{ call.retrieval_method }}</td><td><code>{{ call.arguments | json_text }}</code></td><td>{{ call.count }}{% if call.truncated %} (truncated){% endif %}</td><td>{% if call.evidence %}{{ ref_list(call.evidence) }}{% else %}none{% endif %}</td></tr>
+<tr><td>{{ call.iteration }}</td><td>{{ call.tool }}</td><td>{{ call.status }}{% if call.rejection_reason %} ({{ call.rejection_reason }}){% endif %}</td><td>{{ call.retrieval_method }}</td><td><code>{{ call.arguments | json_text }}</code></td><td>{{ call.count }}{% if call.truncated %} (truncated){% endif %}</td><td>{% if call.evidence %}{{ ref_list(call.evidence) }}{% else %}none{% endif %}</td></tr>
 {% endfor %}
 </table>
 {% else %}<p>No tool calls were made.</p>{% endif %}

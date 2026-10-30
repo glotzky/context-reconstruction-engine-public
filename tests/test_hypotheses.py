@@ -15,6 +15,7 @@ from cre.hypotheses import (
     HypothesisResult,
     generate_hypotheses,
     parse_and_validate,
+    validation_code,
 )
 from cre.llm import FAKE_EMPTY_RESPONSE, FakeProvider, LLMProviderError, LLMRequest
 from cre.prompts import HYPOTHESIS_PROMPT_VERSION, HYPOTHESIS_SYSTEM_PROMPT
@@ -302,3 +303,84 @@ def test_result_schemas_enforce_invariants() -> None:
             repairs=[],
         )
     assert isinstance(UUID(str(first.supporting_evidence_ids[0])), UUID)
+
+
+def test_verified_claim_the_evidence_cannot_support_is_downgraded() -> None:
+    claims = [
+        _claim([str(LOG.id)], text="No release accompanied the change."),
+        _claim([str(LOG.id)], text="The query selects `no_such_column_xyz` from the table."),
+        _claim([str(LOG.id)], text="Trace 0af7651916cd43dd8448eb211c80319c logged an error."),
+    ]
+    result = _parse(_raw(_hyp(claims=claims)))
+    statuses = [(c.status, c.evidence_ids) for c in result.hypotheses[0].claims]
+    assert statuses == [("unverified", []), ("unverified", []), ("verified", [LOG.id])]
+    unsupported = [r for r in result.repairs if r.kind == "claim_unsupported"]
+    assert len(unsupported) == 2
+    assert all("1 citation(s) removed" in r.detail for r in unsupported)
+    assert not any("no_such_column_xyz" in r.detail for r in result.repairs)
+
+
+def test_claim_the_model_already_marked_unverified_is_left_alone() -> None:
+    claims = [_claim([], status="unverified", text="No release accompanied the change.")]
+    result = _parse(_raw(_hyp(claims=claims)))
+    assert result.hypotheses[0].claims[0].status == "unverified"
+    assert not [r for r in result.repairs if r.kind == "claim_unsupported"]
+
+
+def _code_for(raw: str) -> str:
+    with pytest.raises(HypothesisOutputError) as info:
+        _parse(raw)
+    return info.value.code
+
+
+def test_schema_failure_code_names_types_and_schema_fields_only() -> None:
+    bad = _hyp(extra_secret_key="fake-secret-value", uncertainty="fake-level")
+    code = _code_for(_raw(bad))
+    assert "extra_forbidden" in code and "literal_error@hypotheses.*.uncertainty" in code
+    assert "extra_secret_key" not in code and "fake-secret-value" not in code
+
+
+def test_schema_failure_code_deduplicates_and_caps_the_error_list() -> None:
+    hyps = [_hyp(i, explanation="x" * 2500, uncertainty_notes="y" * 1500) for i in range(1, 4)]
+    hyps.append(_hyp(4, title="t" * 300, claims=[]))
+    code = _code_for(_raw(*hyps))
+    assert code.count("string_too_long@hypotheses.*.explanation") == 1
+    assert "more" in code and code.endswith("k chars")
+
+
+def test_oversized_output_code() -> None:
+    assert _code_for("x" * (MAX_OUTPUT_CHARS + 1)) == "output too long; 100k chars"
+
+
+def test_no_valid_supporting_evidence_code() -> None:
+    claims = [_claim([str(uuid4())])]
+    code = _code_for(_raw(_hyp(supporting=[str(uuid4())], claims=claims)))
+    assert code == "no hypothesis with valid supporting evidence"
+
+
+def test_validation_code_ignores_unsafe_location_elements() -> None:
+    from pydantic import BaseModel
+
+    class Model(BaseModel):
+        data: dict[str, int]
+
+    with pytest.raises(ValidationError) as info:
+        Model.model_validate({"data": {"Fake-Secret Key": "not-an-int"}})
+    code = validation_code(info.value, 10)
+    assert code == "int_parsing@data; 0k chars"
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ('{"hypotheses": [{"rank": 1, "title": "unterminated', "json_invalid[eof at col "),
+        (_raw(_hyp()) + " Hope this helps!", "json_invalid[trailing_text at col "),
+        ("Here is the JSON you asked for", "json_invalid[not_json_start at col "),
+        ('{"hypotheses": [1 2]}', "json_invalid[missing_comma at col "),
+    ],
+    ids=["truncated", "trailing_prose", "leading_prose", "missing_comma"],
+)
+def test_json_syntax_failures_are_classified_without_content(raw: str, expected: str) -> None:
+    code = _code_for(raw)
+    assert code.startswith(expected)
+    assert "Hope" not in code and "unterminated" not in code and "Here" not in code

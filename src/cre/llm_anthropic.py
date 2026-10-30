@@ -79,6 +79,7 @@ class AnthropicProvider:
         self._client = client if client is not None else httpx.Client()
         self._sleep = sleep
         self.usage: list[LLMUsage] = []
+        self.last_stop_reason: str | None = None
 
     @classmethod
     def from_settings(
@@ -162,6 +163,7 @@ class AnthropicProvider:
         texts = [b.text for b in message.content if b.type == "text" and isinstance(b.text, str)]
         if not texts:
             raise LLMProviderError(_MALFORMED) from None
+        self.last_stop_reason = message.stop_reason
         usage = message.usage
         self.usage.append(
             LLMUsage(

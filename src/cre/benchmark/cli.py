@@ -8,6 +8,7 @@ import argparse
 import hashlib
 import sys
 import time
+from collections import Counter
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
@@ -383,7 +384,19 @@ def render_table(run: BenchmarkRun) -> str:
         "  ".join(cell.ljust(w) for cell, w in zip(row, widths, strict=True)).rstrip()
         for row in rows
     )
+    lines.extend(_error_lines(run))
     return "\n".join(lines)
+
+
+def _error_lines(run: BenchmarkRun) -> list[str]:
+    """One line per mode listing how often each content-free error detail occurred."""
+    lines: list[str] = []
+    for mode in ("engine", "baseline"):
+        details = Counter(c.error_detail for c in run.cases if c.mode == mode and c.error_detail)
+        if details:
+            parts = "; ".join(f"{d} x{n}" for d, n in sorted(details.items()))
+            lines.append(f"{mode} stopped with error in {sum(details.values())} cases: {parts}")
+    return lines
 
 
 def _non_negative_int(value: str) -> int:

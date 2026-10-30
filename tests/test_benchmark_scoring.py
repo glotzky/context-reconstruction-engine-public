@@ -140,6 +140,7 @@ def test_errored_outcome() -> None:
     assert score.top1_correct is False
     assert (score.claims_total, score.claims_unverified) == (0, 0)
     assert score.stop_reason == "error"
+    assert score.error_detail == "fake error"
 
 
 def test_errored_unanswerable_is_not_abstention() -> None:
@@ -274,3 +275,8 @@ def test_score_case_carries_run_fields() -> None:
 def test_summarize_sums_only_known_costs() -> None:
     scores = [_score(cost_usd=0.5), _score(cost_usd=None), _score(cost_usd=0.25)]
     assert summarize("engine", "dev", scores).cost_usd == pytest.approx(0.75)
+
+
+def test_concluded_outcome_has_no_error_detail() -> None:
+    score = _score_case(_outcome([_hyp(1, [ROOT])]), _labels())
+    assert score.stop_reason == "concluded" and score.error_detail is None

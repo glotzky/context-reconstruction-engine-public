@@ -46,6 +46,10 @@ LOGS="$(mktemp)"
 trap 'scripts/lab.sh reset || true; rm -f "$BODY" "$LOGS"' EXIT
 
 scripts/lab.sh up || fail "lab up"
+# Start from empty evidence so an earlier run's logs, deployments and config changes inside the same
+# retrieval window cannot appear in this run's report. Lab database only; the seeded tables are untouched.
+docker compose exec -T postgres sh -c 'psql -v ON_ERROR_STOP=1 -q -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+  -c "TRUNCATE evidence_items, investigation_jobs, investigation_steps CASCADE"' || fail "clear evidence"
 START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 scripts/lab.sh reset || fail "lab reset"
 scripts/lab.sh trigger "$NAME" || fail "trigger $NAME"

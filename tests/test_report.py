@@ -8,11 +8,14 @@ from cre import report
 from cre.report import (
     CONTENT_MAX_CHARS,
     REPORT_MAX_EVIDENCE,
+    GapGroup,
     allowed_evidence_ids,
     build_report,
+    group_gaps,
     render_evidence,
     render_report,
 )
+from cre.timeline import TimelineUnknown
 from tests.evidence_samples import FAKE_DB_PASSWORD
 from tests.report_samples import (
     BAD_KEY,
@@ -201,3 +204,65 @@ def test_invalid_result_is_not_complete() -> None:
     view = build_report(make_job(result={"not": "a result"}), EVIDENCE)
     assert not view.complete
     assert "could not be read" in render_report(view, href)
+
+
+def _gap(kind: str, description: str, entry: str = "e1") -> TimelineUnknown:
+    return TimelineUnknown(
+        kind=kind, category="ambiguity", entry_ids=[entry], description=description
+    )
+
+
+def test_group_gaps_counts_identical_lines_in_first_seen_order() -> None:
+    gaps = [
+        _gap("order_conflict", "b"),
+        _gap("clock_skew_suspected", "a"),
+        _gap("order_conflict", "b", "e2"),
+        _gap("order_conflict", "b", "e3"),
+        _gap("order_conflict", "different"),
+    ]
+    assert [(g.kind, g.description, g.count) for g in group_gaps(gaps)] == [
+        ("order_conflict", "b", 3),
+        ("clock_skew_suspected", "a", 1),
+        ("order_conflict", "different", 1),
+    ]
+
+
+def test_group_gaps_empty() -> None:
+    assert group_gaps([]) == []
+
+
+def test_report_renders_gap_counts_and_escapes_descriptions() -> None:
+    view = build_report(completed_job(), EVIDENCE).model_copy(
+        update={
+            "timeline_gap_groups": [
+                GapGroup(kind="order_conflict", category="ambiguity", description=SCRIPT, count=4),
+                GapGroup(
+                    kind="clock_skew_suspected", category="ambiguity", description="x", count=1
+                ),
+            ]
+        }
+    )
+    html = render_report(view, href)
+    assert "&times;4" in html and "&times;1" not in html
+    assert SCRIPT not in html and escape(SCRIPT) in html
+
+
+def test_rejected_tool_call_shows_its_reason() -> None:
+    result = make_result().model_dump(mode="json")
+    call = result["rounds"][0]["tool_calls"][0]
+    call.update(
+        status="rejected",
+        rejection_reason="limit_exceeded",
+        arguments=None,
+        evidence_ids=[],
+        count=0,
+    )
+    view = build_report(make_job(result=result), EVIDENCE)
+    assert view.tool_calls[0].rejection_reason == "limit_exceeded"
+    assert "rejected (limit_exceeded)" in render_report(view, href)
+
+
+def test_executed_tool_call_has_no_rejection_reason() -> None:
+    view = build_report(completed_job(), EVIDENCE)
+    assert view.tool_calls[0].rejection_reason is None
+    assert "(limit_exceeded)" not in render_report(view, href)

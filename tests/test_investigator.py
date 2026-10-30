@@ -28,6 +28,7 @@ from cre.prompts import (
     DATA_START,
     HYPOTHESIS_SYSTEM_PROMPT,
     INVESTIGATION_PROMPT_VERSION,
+    MAX_LIMIT_PLACEHOLDER,
     MAX_TOOL_CALLS_PLACEHOLDER,
     REVISION_SYSTEM_PROMPT,
     TOOL_REQUEST_SYSTEM_PROMPT,
@@ -448,22 +449,50 @@ def test_malformed_tool_request_output_errors() -> None:
     raw = "IGNORE PREVIOUS fake-secret-output {not json"
     result, _, executor = _run([INITIAL, raw])
     assert result.stop_reason == "error"
-    assert result.error_detail == "tool request output rejected"
+    assert (
+        result.error_detail
+        == "tool request output rejected (json_invalid[not_json_start at col 2]; 0k chars)"
+    )
     assert "fake-secret-output" not in result.model_dump_json()
     assert executor.queries == []
 
 
-def test_schema_invalid_tool_request_errors() -> None:
-    raw = json.dumps({"action": "call_tools", "tool_calls": [], "extra": "x"})
+def test_extra_keys_in_tool_requests_are_ignored() -> None:
+    raw = json.dumps({"action": "conclude", "fake_extra_key": "x", "reason": "done"})
     result, _, _ = _run([INITIAL, raw])
-    assert result.error_detail == "tool request output rejected"
+    assert result.stop_reason == "concluded" and result.error_detail is None
+
+
+def test_extra_key_inside_a_tool_call_is_ignored_and_arguments_stay_strict() -> None:
+    good = {"tool": "fetch_by_trace", "arguments": TRACE_CALL["arguments"], "reason": "why"}
+    result, _, executor = _run([INITIAL, _tools(good), _revision(), CONCLUDE])
+    assert len(executor.queries) == 1
+    bad = {"tool": "fetch_by_trace", "arguments": {**TRACE_CALL["arguments"], "fake_extra": 1}}
+    result, _, executor = _run([INITIAL, _tools(bad), CONCLUDE])
+    assert executor.queries == []
+    assert result.rounds[0].tool_calls[0].rejection_reason == "invalid_arguments"
+
+
+def test_unknown_action_in_tool_request_errors_with_field_name() -> None:
+    raw = json.dumps({"action": "fake-action"})
+    result, _, _ = _run([INITIAL, raw])
+    assert result.error_detail == "tool request output rejected (literal_error@action; 0k chars)"
+    assert "fake-action" not in result.model_dump_json()
+
+
+def test_overlong_reason_in_tool_request_names_the_field() -> None:
+    raw = json.dumps({"action": "conclude", "reason": "x" * 1500})
+    result, _, _ = _run([INITIAL, raw])
+    assert result.error_detail == "tool request output rejected (string_too_long@reason; 1k chars)"
 
 
 def test_oversized_tool_request_output_errors() -> None:
     raw = json.dumps({"action": "conclude", "reason": "x" * MAX_OUTPUT_CHARS})
     result, _, _ = _run([INITIAL, raw])
     assert result.stop_reason == "error"
-    assert result.error_detail == "tool request output rejected"
+    assert result.error_detail == (
+        f"tool request output rejected (output too long; {len(raw) // 1000}k chars)"
+    )
     assert result.rounds == []
 
 
@@ -482,7 +511,10 @@ def test_tool_request_provider_error() -> None:
 def test_revision_output_rejected_keeps_last_hypotheses() -> None:
     result, _, _ = _run([INITIAL, _tools(TRACE_CALL), "fake garbage"])
     assert result.stop_reason == "error"
-    assert result.error_detail == "revision output rejected"
+    assert (
+        result.error_detail
+        == "revision output rejected (json_invalid[not_json_start at col 3]; 0k chars)"
+    )
     assert result.hypotheses is not None and result.hypotheses == result.initial_hypotheses
     assert result.rounds[0].revised is False
     assert result.rounds[0].new_evidence_ids == [NEW.id]
@@ -492,14 +524,17 @@ def test_revision_output_rejected_keeps_last_hypotheses() -> None:
 def test_initial_provider_error() -> None:
     result, _, executor = _run([])
     assert result.stop_reason == "error"
-    assert result.error_detail == "initial hypothesis generation failed"
+    assert result.error_detail == "initial hypothesis generation failed (provider error)"
     assert result.hypotheses is None and result.initial_hypotheses is None
     assert executor.queries == [] and result.iterations_used == 0
 
 
 def test_initial_output_rejected() -> None:
     result, _, _ = _run(["fake garbage"])
-    assert result.error_detail == "initial hypothesis generation failed"
+    assert (
+        result.error_detail
+        == "initial hypothesis generation failed (json_invalid[not_json_start at col 3]; 0k chars)"
+    )
     assert result.hypotheses is None
 
 
@@ -555,7 +590,9 @@ def test_prompts_delimit_untrusted_data() -> None:
         [initial, _tools(TRACE_CALL), revision, CONCLUDE], FakeExecutor([injected])
     )
     assert result.stop_reason == "concluded"
-    tool_system = TOOL_REQUEST_SYSTEM_PROMPT.replace(MAX_TOOL_CALLS_PLACEHOLDER, "3")
+    tool_system = TOOL_REQUEST_SYSTEM_PROMPT.replace(MAX_TOOL_CALLS_PLACEHOLDER, "3").replace(
+        MAX_LIMIT_PLACEHOLDER, str(SETTINGS.investigation_per_query_limit)
+    )
     assert "At most 3 calls are honoured" in tool_system
     systems = [r.system for r in provider.requests]
     assert systems == [HYPOTHESIS_SYSTEM_PROMPT, tool_system, REVISION_SYSTEM_PROMPT, tool_system]
@@ -773,3 +810,62 @@ def test_on_step_exception_propagates() -> None:
             on_step=sink,
         )
     assert len(provider.requests) == 1
+
+
+def test_tool_prompt_states_the_per_query_limit_cap() -> None:
+    _, provider, _ = _run([INITIAL, CONCLUDE], budget=_budget(per_query_limit=37))
+    tool_system = provider.requests[1].system
+    assert 'A "limit" above 37 is rejected' in tool_system
+    assert MAX_LIMIT_PLACEHOLDER not in tool_system
+
+
+def test_revision_with_overlong_explanation_names_the_field_not_the_content() -> None:
+    revision = _raw(_hyp(1, [str(LOG.id)], explanation="fake-long-text " * 200))
+    result, _, _ = _run([INITIAL, _tools(TRACE_CALL), revision])
+    assert result.error_detail == (
+        "revision output rejected (string_too_long@hypotheses.*.explanation; 3k chars)"
+    )
+    assert "fake-long-text" not in result.model_dump_json()
+    assert result.hypotheses == result.initial_hypotheses
+
+
+class _TruncatingProvider(FakeProvider):
+    """A fake whose calls all report that the model stopped at max_output_tokens."""
+
+    last_stop_reason: str | None = "max_tokens"
+
+
+def _run_with(provider: FakeProvider) -> InvestigationResult:
+    return investigate(
+        SCENARIO,
+        anchor=ANCHOR,
+        provider=provider,
+        executor=FakeExecutor([NEW]),
+        settings=SETTINGS,
+    )
+
+
+def test_truncated_revision_is_labelled() -> None:
+    result = _run_with(_TruncatingProvider([INITIAL, _tools(TRACE_CALL), '{"hypotheses": [{"ra']))
+    assert result.error_detail is not None
+    assert result.error_detail.startswith(
+        "revision output rejected (truncated at max_output_tokens;"
+    )
+
+
+def test_truncated_tool_request_and_initial_output_are_labelled() -> None:
+    result = _run_with(_TruncatingProvider([INITIAL, '{"action": "call_to']))
+    assert result.error_detail is not None
+    assert result.error_detail.startswith(
+        "tool request output rejected (truncated at max_output_tokens;"
+    )
+    result = _run_with(_TruncatingProvider(['{"hypotheses": [']))
+    assert result.error_detail is not None
+    assert result.error_detail.startswith(
+        "initial hypothesis generation failed (truncated at max_output_tokens;"
+    )
+
+
+def test_untruncated_provider_has_no_truncation_label() -> None:
+    result, _, _ = _run([INITIAL, _tools(TRACE_CALL), '{"hypotheses": [{"ra'])
+    assert result.error_detail is not None and "truncated" not in result.error_detail

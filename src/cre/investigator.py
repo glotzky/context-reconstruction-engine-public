@@ -18,7 +18,7 @@ from types import MappingProxyType
 from typing import Annotated, Literal, Self
 from uuid import UUID
 
-from pydantic import Field, JsonValue, ValidationError, model_validator
+from pydantic import ConfigDict, Field, JsonValue, ValidationError, model_validator
 from sqlalchemy import Engine
 
 from cre.bundle import (
@@ -39,11 +39,13 @@ from cre.hypotheses import (
     _strip_fence,
     generate_hypotheses,
     parse_and_validate,
+    validation_code,
 )
 from cre.llm import LLMProvider, LLMProviderError, LLMRequest
 from cre.prompts import (
     HYPOTHESIS_SYSTEM_PROMPT,
     INVESTIGATION_PROMPT_VERSION,
+    MAX_LIMIT_PLACEHOLDER,
     MAX_TOOL_CALLS_PLACEHOLDER,
     REVISION_SYSTEM_PROMPT,
     TOOL_REQUEST_SYSTEM_PROMPT,
@@ -113,12 +115,22 @@ TOOLS: Mapping[str, ToolSpec] = MappingProxyType(
 )
 
 
-class ToolCallRequest(_Model):
+class _LenientModel(_Model):
+    """Tool requests may carry extra keys (the model often adds a per-call reason).
+
+    Unknown keys are ignored; every key we use is still validated, and tool arguments are
+    validated strictly per tool by their own models.
+    """
+
+    model_config = ConfigDict(extra="ignore", frozen=True)
+
+
+class ToolCallRequest(_LenientModel):
     tool: Annotated[str, Field(max_length=_TOOL_NAME_MAX_CHARS)]
     arguments: dict[str, JsonValue]
 
 
-class ToolRequestOutput(_Model):
+class ToolRequestOutput(_LenientModel):
     action: Literal["call_tools", "conclude"]
     tool_calls: Annotated[list[ToolCallRequest], Field(max_length=20)] = []
     reason: Annotated[str, Field(max_length=1000)] = ""
@@ -218,10 +230,13 @@ class _MeteredProvider:
         self.name = provider.name
         self.model = provider.model
         self.tokens_used = 0
+        self.last_truncated = False
 
     def complete(self, request: LLMRequest) -> str:
         self.tokens_used += math.ceil((len(request.system) + len(request.user)) / 4)
+        self.last_truncated = False
         raw = self._provider.complete(request)
+        self.last_truncated = getattr(self._provider, "last_stop_reason", None) == "max_tokens"
         self.tokens_used += math.ceil(len(raw) / 4)
         return raw
 
@@ -237,6 +252,13 @@ class _Stop(Exception):
         self.reason: StopReason = reason
         self.budget_kind = budget_kind
         self.detail = detail
+
+
+def _with_code(base: str, code: str, truncated: bool) -> str:
+    parts = ["truncated at max_output_tokens"] if truncated else []
+    if code:
+        parts.append(code)
+    return f"{base} ({'; '.join(parts)})" if parts else base
 
 
 def _rejected(iteration: int, tool: str, reason: RejectionReason) -> ToolCallRecord:
@@ -432,7 +454,7 @@ def investigate(
 
         system = TOOL_REQUEST_SYSTEM_PROMPT.replace(
             MAX_TOOL_CALLS_PLACEHOLDER, str(budget.max_tool_calls_per_iteration)
-        )
+        ).replace(MAX_LIMIT_PLACEHOLDER, str(budget.per_query_limit))
         user = render_investigation_prompt(
             neutralize_delimiters(hypotheses.model_dump_json(include={"hypotheses", "unknowns"})),
             bundle.rendered,
@@ -453,8 +475,20 @@ def investigate(
             if len(raw) > MAX_OUTPUT_CHARS:
                 raise ValueError
             output = ToolRequestOutput.model_validate_json(_strip_fence(raw))
+        except ValidationError as exc:
+            detail = _with_code(
+                "tool request output rejected",
+                validation_code(exc, len(raw)),
+                metered.last_truncated,
+            )
+            raise _Stop("error", detail=detail) from None
         except ValueError:
-            raise _Stop("error", detail="tool request output rejected") from None
+            detail = _with_code(
+                "tool request output rejected",
+                f"output too long; {len(raw) // 1000}k chars",
+                metered.last_truncated,
+            )
+            raise _Stop("error", detail=detail) from None
 
         if output.action == "conclude":
             record("conclude")
@@ -557,8 +591,9 @@ def investigate(
                 revised = parse_and_validate(
                     raw, revision_bundle, provider=metered.name, model=metered.model
                 )
-            except HypothesisOutputError:
-                raise _Stop("error", detail="revision output rejected") from None
+            except HypothesisOutputError as exc:
+                detail = _with_code("revision output rejected", exc.code, metered.last_truncated)
+                raise _Stop("error", detail=detail) from None
         except _Stop:
             record("call_tools")
             raise
@@ -590,8 +625,15 @@ def investigate(
                 initial = generate_hypotheses(
                     bundle, metered, max_output_tokens=max_output_tokens, timeout_seconds=timeout
                 )
-            except (LLMProviderError, HypothesisOutputError):
-                raise _Stop("error", detail="initial hypothesis generation failed") from None
+            except LLMProviderError:
+                raise _Stop(
+                    "error", detail="initial hypothesis generation failed (provider error)"
+                ) from None
+            except HypothesisOutputError as exc:
+                detail = _with_code(
+                    "initial hypothesis generation failed", exc.code, metered.last_truncated
+                )
+                raise _Stop("error", detail=detail) from None
             current = initial
             emit("hypotheses:initial")
         for iteration in range(len(rounds) + 1, budget.max_iterations + 1):

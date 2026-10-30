@@ -28,6 +28,8 @@ case "$cmd" in
     if [[ "$name" == "stale-search-path" ]]; then
       # The role's search_path default only reaches new sessions, so restart the pooled api.
       docker compose restart api
+      # restart returns before the api accepts connections; wait until it is healthy again.
+      docker compose up -d --wait api
     fi
     ;;
   reset)

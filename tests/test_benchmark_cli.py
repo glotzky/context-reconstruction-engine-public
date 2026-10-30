@@ -13,6 +13,7 @@ from cre.benchmark.cli import (
     BenchmarkRun,
     RealProvider,
     main,
+    render_table,
     run_benchmark,
 )
 from cre.config import Settings
@@ -500,3 +501,33 @@ def test_real_anthropic_provider_cost_via_mock_transport(tmp_path: Path) -> None
     assert case.stop_reason == "concluded" and case.provider == "anthropic"
     assert case.cost_usd == pytest.approx(4 * compute_cost(100, 50, 1, 1))
     assert KEY not in out.read_text("utf-8")
+
+
+def test_table_has_no_error_lines_when_every_case_concludes(shipped_run: BenchmarkRun) -> None:
+    assert "stopped with error" not in render_table(shipped_run)
+
+
+def test_table_counts_error_details_per_mode(shipped_run: BenchmarkRun) -> None:
+    cases = list(shipped_run.cases)
+    engine = [i for i, c in enumerate(cases) if c.mode == "engine"][:3]
+    baseline = [i for i, c in enumerate(cases) if c.mode == "baseline"][:1]
+    for i, detail in zip(
+        engine, ["revision output rejected"] * 2 + ["all tool calls failed"], strict=True
+    ):
+        cases[i] = cases[i].model_copy(update={"stop_reason": "error", "error_detail": detail})
+    cases[baseline[0]] = cases[baseline[0]].model_copy(
+        update={"stop_reason": "error", "error_detail": "baseline hypothesis generation failed"}
+    )
+    text = render_table(shipped_run.model_copy(update={"cases": cases}))
+    assert (
+        "engine stopped with error in 3 cases: all tool calls failed x1; "
+        "revision output rejected x2" in text
+    )
+    assert (
+        "baseline stopped with error in 1 cases: baseline hypothesis generation failed x1" in text
+    )
+
+
+def test_case_error_detail_is_written_to_the_run_record(shipped_run: BenchmarkRun) -> None:
+    record = json.loads(shipped_run.model_dump_json())
+    assert all("error_detail" in c and c["error_detail"] is None for c in record["cases"])

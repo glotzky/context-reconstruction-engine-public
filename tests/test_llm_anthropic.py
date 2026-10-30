@@ -403,3 +403,14 @@ def test_investigator_completes_through_adapter() -> None:
     assert result.model == MODEL
     assert len(handler.requests) == 4
     assert len(provider.usage) == 4
+
+
+def test_last_stop_reason_is_remembered_per_call() -> None:
+    truncated = _ok("{")
+    truncated["stop_reason"] = "max_tokens"
+    provider, _ = _provider(Recorder(truncated, _ok("done")))
+    assert provider.last_stop_reason is None
+    provider.complete(_request())
+    assert provider.last_stop_reason == "max_tokens"
+    provider.complete(_request())
+    assert provider.last_stop_reason == "end_turn"

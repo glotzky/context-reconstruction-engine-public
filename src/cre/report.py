@@ -120,10 +120,18 @@ class TimelineEntryView(_Model):
     evidence: list[EvidenceRef]
 
 
+class GapGroup(_Model):
+    kind: str
+    category: str
+    description: str
+    count: int
+
+
 class ToolCallView(_Model):
     iteration: int
     tool: str
     status: str
+    rejection_reason: str | None = None
     retrieval_method: str
     arguments: dict[str, JsonValue] | None
     count: int
@@ -150,6 +158,7 @@ class ReportView(_Model):
     hypotheses: list[HypothesisView] = []
     unknowns: list[str] = []
     timeline_gaps: list[TimelineUnknown] = []
+    timeline_gap_groups: list[GapGroup] = []
     missing_evidence_ids: list[UUID] = []
     repairs: list[RepairNote] = []
     next_steps: list[str] = []
@@ -186,6 +195,15 @@ def load_report(source: ReportSource, job: JobView) -> ReportView:
 
 def _label(item: Evidence) -> str:
     return f"{item.kind} · {item.timestamp.astimezone(UTC).isoformat().replace('+00:00', 'Z')}"
+
+
+def group_gaps(gaps: Sequence[TimelineUnknown]) -> list[GapGroup]:
+    """Collapse identical gap lines into one line with a count, keeping first-seen order."""
+    counts: dict[tuple[str, str, str], int] = {}
+    for g in gaps:
+        key = (str(g.kind), str(g.category), g.description)
+        counts[key] = counts.get(key, 0) + 1
+    return [GapGroup(kind=k, category=c, description=d, count=n) for (k, c, d), n in counts.items()]
 
 
 def build_report(job: JobView, evidence: Sequence[Evidence]) -> ReportView:
@@ -239,6 +257,7 @@ def build_report(job: JobView, evidence: Sequence[Evidence]) -> ReportView:
             iteration=call.iteration,
             tool=call.tool,
             status=call.status,
+            rejection_reason=call.rejection_reason,
             retrieval_method=call.retrieval_method,
             arguments=call.arguments,
             count=call.count,
@@ -264,6 +283,7 @@ def build_report(job: JobView, evidence: Sequence[Evidence]) -> ReportView:
             "hypotheses": hypotheses,
             "unknowns": list(chosen.unknowns) if chosen is not None else [],
             "timeline_gaps": list(timeline.unknowns),
+            "timeline_gap_groups": group_gaps(timeline.unknowns),
             "missing_evidence_ids": [i for i in all_ids if i not in labels],
             "repairs": list(chosen.repairs) if chosen is not None else [],
             "next_steps": next_steps,
